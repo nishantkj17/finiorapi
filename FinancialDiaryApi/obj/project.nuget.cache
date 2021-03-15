@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "s8de2PL/Dg+k43gdnO8g4pgn6lFTgyr4chIeJSVNXmZ+WNYMMvCme0ztRoXDyIbP7AKVH9kMxjXMYUTw5qBg1Q==",
+  "dgSpecHash": "gnUdAadSNqvoBtmtYuKSMy8LibXSzv1PinGw2EN4CkQqAwBXbJpZlKAyOCLaGOknucyvj7uBNAS5nJk9vgCvjQ==",
   "success": true,
-  "projectFilePath": "C:\\findiary\\FinancialDiaryApi\\FinancialDiaryApi.csproj",
+  "projectFilePath": "C:\\finiorapi\\FinancialDiaryApi\\FinancialDiaryApi.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\nisha\\.nuget\\packages\\dnsclient\\1.4.0\\dnsclient.1.4.0.nupkg.sha512",
     "C:\\Users\\nisha\\.nuget\\packages\\microsoft.aspnetcore.cors\\2.2.0\\microsoft.aspnetcore.cors.2.2.0.nupkg.sha512",

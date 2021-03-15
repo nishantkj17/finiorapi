@@ -933,11 +933,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\findiary\\FinancialDiaryApi\\FinancialDiaryApi.csproj",
+      "projectUniqueName": "C:\\finiorapi\\FinancialDiaryApi\\FinancialDiaryApi.csproj",
       "projectName": "FinancialDiaryApi",
-      "projectPath": "C:\\findiary\\FinancialDiaryApi\\FinancialDiaryApi.csproj",
+      "projectPath": "C:\\finiorapi\\FinancialDiaryApi\\FinancialDiaryApi.csproj",
       "packagesPath": "C:\\Users\\nisha\\.nuget\\packages\\",
-      "outputPath": "C:\\findiary\\FinancialDiaryApi\\obj\\",
+      "outputPath": "C:\\finiorapi\\FinancialDiaryApi\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Microsoft\\Xamarin\\NuGet\\"

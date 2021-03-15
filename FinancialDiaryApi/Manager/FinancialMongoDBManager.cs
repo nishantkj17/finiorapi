@@ -7,6 +7,9 @@ using MongoDB.Driver;
 using FinancialDiaryWeb.Model;
 using MongoDB.Driver.Builders;
 using FinancialDiaryApi.Model;
+using System.IO;
+using MongoDB.Bson.IO;
+using MongoDB.Bson.Serialization;
 
 namespace FinancialDiaryWeb.Manager
 {
@@ -229,7 +232,7 @@ namespace FinancialDiaryWeb.Manager
 				{Constants.returns, Math.Round(returns, 2)},
 				{Constants.createddate, DateTime.Now.ToString(Constants.ddMMMMyyyy) }
 			};
-
+			CollectionBackup();
 			investmentRecord.InsertOne(doc);
 			return 0;
 		}
@@ -488,7 +491,7 @@ namespace FinancialDiaryWeb.Manager
 			}
 			double mutualFundData = GetCombinedMutualFundReturnDetails().Result.Last().currentvalue;
 			double equityData = (int)GetInvestmentReturnData(Constants.Equity, Constants.ByLatestDate).FirstOrDefault()[Constants.currentvalue];
-
+			
 			var obj = new DashboardData
 			{
 				epfo = epfoData,
@@ -497,6 +500,35 @@ namespace FinancialDiaryWeb.Manager
 				ppf = ppfData
 			};
 			return obj;
+		}
+
+		private async void CollectionBackup()
+		{
+			string outputFileName="C:\\repos\\"; // initialize to the output file
+			IMongoDatabase db = dbClient.GetDatabase(Constants.Financials);
+			IMongoCollection<BsonDocument> collection;  // initialize to the collection to read from
+			foreach (var item in db.ListCollectionsAsync().Result.ToListAsync<BsonDocument>().Result)
+			{
+				outputFileName += (string)item["name"] + ".json";
+				collection = GetMongoCollection((string)item["name"]);
+				using (var streamWriter = new StreamWriter(outputFileName))
+				{
+					await collection.Find(new BsonDocument())
+						.ForEachAsync(async (document) =>
+						{
+							using (var stringWriter = new StringWriter())
+							using (var jsonWriter = new JsonWriter(stringWriter))
+							{
+								var context = BsonSerializationContext.CreateRoot(jsonWriter);
+								collection.DocumentSerializer.Serialize(context, document);
+								var line = stringWriter.ToString();
+								await streamWriter.WriteLineAsync(line);
+							}
+						});
+					outputFileName = "C:\\repos\\";
+				}
+			}
+	
 		}
 	}
 }
