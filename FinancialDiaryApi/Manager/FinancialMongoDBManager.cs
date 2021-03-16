@@ -1,29 +1,28 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using MongoDB.Bson;
-using MongoDB.Driver;
-using FinancialDiaryWeb.Model;
-using MongoDB.Driver.Builders;
 using FinancialDiaryApi.Model;
-using System.IO;
+using FinancialDiaryWeb.Model;
+using MongoDB.Bson;
 using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization;
+using MongoDB.Driver;
 
-namespace FinancialDiaryWeb.Manager
+namespace FinancialDiaryApi.Manager
 {
-	public class FinancialMongoDBManager
+	public class FinancialMongoDbManager
 	{
-		private MongoClient dbClient;
-		public FinancialMongoDBManager()
+		private MongoClient _dbClient;
+		public FinancialMongoDbManager()
 		{
-			dbClient = new MongoClient("mongodb://localhost:27017/?readPreference=primary&appname=MongoDB%20Compass&ssl=false");
+			_dbClient = new MongoClient("mongodb://localhost:27017/?readPreference=primary&appname=MongoDB%20Compass&ssl=false");
 		}
 
 		private IMongoCollection<BsonDocument> GetMongoCollection(string collectionName)
 		{
-			IMongoDatabase db = dbClient.GetDatabase(Constants.Financials);
+			IMongoDatabase db = _dbClient.GetDatabase(Constants.Financials);
 			return db.GetCollection<BsonDocument>(collectionName);
 		}
 		public async Task<int> AddInvestments(string fundName, string date, string amount, string profile)
@@ -61,12 +60,14 @@ namespace FinancialDiaryWeb.Manager
 
 			foreach (var item in docs)
 			{
-				var obj = new InvestmentDetails();
-				obj.fundName = (string)item[Constants.fundName];
-				obj.date = (string)item[Constants.date];
-				obj.denomination = (string)item[Constants.amount];
-				obj.profile = (string)item[Constants.profile];
-				obj.id = Convert.ToString((ObjectId)item[Constants._id]);
+				var obj = new InvestmentDetails
+				{
+					fundName = (string) item[Constants.fundName],
+					date = (string) item[Constants.date],
+					denomination = (string) item[Constants.amount],
+					profile = (string) item[Constants.profile],
+					id = Convert.ToString((ObjectId) item[Constants._id])
+				};
 
 				outputData.Add(obj);
 			}
@@ -107,21 +108,15 @@ namespace FinancialDiaryWeb.Manager
 			}
 
 
-			var outputData = new List<InvestmentDetails>();
-
-			foreach (var item in docs)
-			{
-				var obj = new InvestmentDetails
+			return docs.Select(item => new InvestmentDetails
 				{
-					fundName = (string)item[Constants.fundName],
-					date = (string)item[Constants.date],
-					denomination = (string)item[Constants.amount],
-					profile = (string)item[Constants.profile],
-					id = Convert.ToString((ObjectId)item[Constants._id])
-				};
-				outputData.Add(obj);
-			}
-			return outputData;
+					fundName = (string) item[Constants.fundName],
+					date = (string) item[Constants.date],
+					denomination = (string) item[Constants.amount],
+					profile = (string) item[Constants.profile],
+					id = Convert.ToString((ObjectId) item[Constants._id])
+				})
+				.ToList();
 		}
 
 		internal async Task<int> UpdateSIPDetails(InvestmentDetails model)
@@ -141,8 +136,8 @@ namespace FinancialDiaryWeb.Manager
 			var count = investmentReturnData.Result.Count();
 			var investedAmountData = new int[count];
 			var currentValueData = new int[count];
-			List<string> lineChartLabelsList = new List<string>();
-			int counter = 0;
+			var lineChartLabelsList = new List<string>();
+			var counter = 0;
 			foreach (var item in investmentReturnData.Result)
 			{
 				lineChartLabelsList.AddRange(new string[] { "" });
@@ -163,10 +158,10 @@ namespace FinancialDiaryWeb.Manager
 		{
 			var docs = GetInvestmentReturnData(Constants.Equity, Constants.ByOldDate);
 
-			List<string> lineChartLabelsList = new List<string>();
+			var lineChartLabelsList = new List<string>();
 			var investedAmountData = new int[docs.Count];
 			var currentValueData = new int[docs.Count];
-			int counter = 0;
+			var counter = 0;
 			foreach (var item in docs)
 			{
 				lineChartLabelsList.AddRange(new string[] { "" });
@@ -187,10 +182,10 @@ namespace FinancialDiaryWeb.Manager
 		{
 			var docs = GetInvestmentReturnData(Constants.EPFO, Constants.ByOldDate);
 
-			List<string> lineChartLabelsList = new List<string>();
+			var lineChartLabelsList = new List<string>();
 			var contributionData = new int[docs.Count];
 			var interest = new int[docs.Count];
-			int counter = 0;
+			var counter = 0;
 			foreach (var item in docs)
 			{
 				lineChartLabelsList.AddRange(new string[] { (string)item[Constants.profile] });
@@ -310,13 +305,15 @@ namespace FinancialDiaryWeb.Manager
 
 			foreach (var item in docs)
 			{
-				var obj = new InvestmentReturns();
-				obj.investedamount = (int)item[Constants.investedamount];
-				obj.currentvalue = (int)item[Constants.currentvalue];
-				obj.returns = (double)item[Constants.returns];
-				obj.profile = (string)item[Constants.profile];
-				obj.createddate = (string)item[Constants.createddate];
-				obj.id = Convert.ToString((ObjectId)item[Constants._id]);
+				var obj = new InvestmentReturns
+				{
+					investedamount = (int) item[Constants.investedamount],
+					currentvalue = (int) item[Constants.currentvalue],
+					returns = (double) item[Constants.returns],
+					profile = (string) item[Constants.profile],
+					createddate = (string) item[Constants.createddate],
+					id = Convert.ToString((ObjectId) item[Constants._id])
+				};
 				outputData.Add(obj);
 			}
 			return outputData;
@@ -324,7 +321,7 @@ namespace FinancialDiaryWeb.Manager
 		private List<BsonDocument> GetInvestmentReturnData(string collection, string order)
 		{
 			var investmentRecord = GetMongoCollection(collection);
-			var data = new List<BsonDocument>();
+			List<BsonDocument> data;
 			if(order.Equals(Constants.ByLatestDate))
 			{
 				data =investmentRecord.Find(new BsonDocument())
@@ -383,16 +380,12 @@ namespace FinancialDiaryWeb.Manager
 				}
 				else
 				{
-					foreach (var entry in outputData)
+					foreach (var entry in outputData.Where(entry => entry.createddate.Equals((string)item[Constants.createddate])))
 					{
-						if (entry.createddate.Equals((string)item[Constants.createddate]))
-						{
-							entry.investedamount += (int)item[Constants.investedamount];
-							entry.currentvalue += (int)item[Constants.currentvalue];
-							entry.returns = Math.Round(((double)(entry.currentvalue - entry.investedamount) / (double)entry.investedamount) * 100, 2);
-						}
+						entry.investedamount += (int)item[Constants.investedamount];
+						entry.currentvalue += (int)item[Constants.currentvalue];
+						entry.returns = Math.Round(((double)(entry.currentvalue - entry.investedamount) / (double)entry.investedamount) * 100, 2);
 					}
-
 				}
 			}
 
@@ -404,7 +397,6 @@ namespace FinancialDiaryWeb.Manager
 			var investmentRecord = GetMongoCollection(Constants.Diary);
 			var docs = investmentRecord.Find(new BsonDocument()).ToList();
 			var sipDetailsFund = new Dictionary<string, int>();
-			var outputData = new List<InvestmentDetails>();
 			foreach (var item in docs)
 			{
 				if (!sipDetailsFund.ContainsKey((string)item[Constants.fundName]))
@@ -417,14 +409,8 @@ namespace FinancialDiaryWeb.Manager
 				}
 			}
 
-			foreach (KeyValuePair<string, int> entry in sipDetailsFund.OrderBy(i => i.Key))
-			{
-				var obj = new InvestmentDetails();
-				obj.fundName = entry.Key;
-				obj.denomination = Convert.ToString(entry.Value);
-				outputData.Add(obj);
-			}
-			return outputData;
+			return sipDetailsFund.OrderBy(i => i.Key).Select(entry 
+				=> new InvestmentDetails {fundName = entry.Key, denomination = Convert.ToString(entry.Value)}).ToList();
 		}
 
 		internal async Task<IEnumerable<InvestmentDetails>> GetSIPDetailsByDate()
@@ -444,17 +430,9 @@ namespace FinancialDiaryWeb.Manager
 					sipDetailsFund[(string)item[Constants.date]] += Convert.ToInt32((string)item[Constants.amount]);
 				}
 			}
-			var outputData = new List<InvestmentDetails>();
-			foreach (KeyValuePair<string, int> entry in sipDetailsFund.OrderBy(i => i.Key))
-			{
-				var obj = new InvestmentDetails
-				{
-					date = entry.Key,
-					denomination = Convert.ToString(entry.Value)
-				};
-				outputData.Add(obj);
-			}
-			return outputData;
+
+			return sipDetailsFund.OrderBy(i => i.Key).Select(entry
+				=> new InvestmentDetails {date = entry.Key, denomination = Convert.ToString(entry.Value)}).ToList();
 		}
 
 		internal async Task<int> SaveProvidentFundDetails(string profile, int investedamount, int currentvalue)
@@ -490,7 +468,7 @@ namespace FinancialDiaryWeb.Manager
 				}
 			}
 			double mutualFundData = GetCombinedMutualFundReturnDetails().Result.Last().currentvalue;
-			double equityData = (int)GetInvestmentReturnData(Constants.Equity, Constants.ByLatestDate).FirstOrDefault()[Constants.currentvalue];
+			double equityData = (int)GetInvestmentReturnData(Constants.Equity, Constants.ByLatestDate).FirstOrDefault()?[Constants.currentvalue];
 			
 			var obj = new DashboardData
 			{
@@ -502,10 +480,16 @@ namespace FinancialDiaryWeb.Manager
 			return obj;
 		}
 
+		internal async Task<List<string>> GetDebtAccountName()
+		{
+			var debtAccounts = GetMongoCollection(Constants.DebtAccounts).Find(new BsonDocument()).ToList();
+			return debtAccounts.Select(item => (string) item[Constants.investedamount]).ToList();
+		}
+
 		private async void CollectionBackup()
 		{
-			string outputFileName="C:\\repos\\"; // initialize to the output file
-			IMongoDatabase db = dbClient.GetDatabase(Constants.Financials);
+			var outputFileName="C:\\repos\\"; // initialize to the output file
+			var db = _dbClient.GetDatabase(Constants.Financials);
 			IMongoCollection<BsonDocument> collection;  // initialize to the collection to read from
 			foreach (var item in db.ListCollectionsAsync().Result.ToListAsync<BsonDocument>().Result)
 			{

@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using FinancialDiaryApi.Manager;
 using FinancialDiaryWeb.Model;
 
 namespace FinancialDiaryWeb.Controllers
@@ -28,7 +29,7 @@ namespace FinancialDiaryWeb.Controllers
 		[Route("addinvestment")]
 		public async Task<ActionResult> AddInvestment([FromForm] InvestmentDetails model)
 		{
-			FinancialMongoDBManager obj = new FinancialMongoDBManager();
+			FinancialMongoDbManager obj = new FinancialMongoDbManager();
 			await obj.AddInvestments(model.fundName, model.date, model.denomination, model.profile);
 			return Ok();
 		}
@@ -37,7 +38,7 @@ namespace FinancialDiaryWeb.Controllers
 		[Route("adddebt")]
 		public async Task<ActionResult> AddDebt([FromForm] DebtDetails model)
 		{
-			FinancialMongoDBManager obj = new FinancialMongoDBManager();
+			FinancialMongoDbManager obj = new FinancialMongoDbManager();
 			await obj.AddDebt(model.accountname, model.currentbalance);
 			return Ok();
 		}
@@ -46,7 +47,7 @@ namespace FinancialDiaryWeb.Controllers
 		[Route("savereturns")]
 		public async Task<ActionResult> SaveReturns([FromForm] InvestmentReturns model)
 		{
-			FinancialMongoDBManager obj = new FinancialMongoDBManager();
+			FinancialMongoDbManager obj = new FinancialMongoDbManager();
 			await obj.SaveReturns(model.profile, model.investedamount, model.currentvalue);
 			return Ok();
 		}
@@ -56,7 +57,7 @@ namespace FinancialDiaryWeb.Controllers
 		[Route("getreturns")]
 		public async Task<ActionResult> GetInvestmentReturnDetails()
 		{
-			FinancialMongoDBManager obj = new FinancialMongoDBManager();
+			FinancialMongoDbManager obj = new FinancialMongoDbManager();
 			return Ok(await obj.GetInvestmentReturnDetails());
 		}
 
@@ -65,7 +66,7 @@ namespace FinancialDiaryWeb.Controllers
 		[Route("getcombinedreturns")]
 		public async Task<ActionResult> GetCombinedInvestmentReturnDetails()
 		{
-			FinancialMongoDBManager obj = new FinancialMongoDBManager();
+			FinancialMongoDbManager obj = new FinancialMongoDbManager();
 			return Ok(await obj.GetCombinedMutualFundReturnDetails());
 		}
 
@@ -73,7 +74,7 @@ namespace FinancialDiaryWeb.Controllers
 		[Route("getinvestmentdetails")]
 		public async Task<ActionResult> GetInvestmentDetails()
 		{
-			FinancialMongoDBManager obj = new FinancialMongoDBManager();
+			FinancialMongoDbManager obj = new FinancialMongoDbManager();
 			return Ok(await obj.GetInvestmentDetails());
 		}
 
@@ -81,7 +82,7 @@ namespace FinancialDiaryWeb.Controllers
 		[Route("getfilteredinvestmentdetails")]
 		public async Task<ActionResult> GetFilteredInvestmentDetails(string date, string profile)
 		{
-			FinancialMongoDBManager obj = new FinancialMongoDBManager();
+			FinancialMongoDbManager obj = new FinancialMongoDbManager();
 			return Ok(await obj.GetFilteredInvestmentDetails(date, profile));
 		}
 
@@ -89,7 +90,7 @@ namespace FinancialDiaryWeb.Controllers
 		[Route("gettotalsipdetailsbydate")]
 		public async Task<ActionResult> GetTotalSipDetailsByDate()
 		{
-			FinancialMongoDBManager obj = new FinancialMongoDBManager();
+			FinancialMongoDbManager obj = new FinancialMongoDbManager();
 			return Ok(await obj.GetSIPDetailsByDate());
 		}
 
@@ -97,7 +98,7 @@ namespace FinancialDiaryWeb.Controllers
 		[Route("gettotalsipdetailsbyfund")]
 		public async Task<ActionResult> GetTotalSipDetailsByFund()
 		{
-			FinancialMongoDBManager obj = new FinancialMongoDBManager();
+			FinancialMongoDbManager obj = new FinancialMongoDbManager();
 			return Ok(await obj.GetSIPDetailsByFund());
 		}
 
@@ -105,14 +106,14 @@ namespace FinancialDiaryWeb.Controllers
 		[Route("updatesipdetails")]
 		public async Task<ActionResult> UpdateSIPDetails([FromForm] InvestmentDetails model)
 		{
-			FinancialMongoDBManager obj = new FinancialMongoDBManager();
+			FinancialMongoDbManager obj = new FinancialMongoDbManager();
 			return Ok(await obj.UpdateSIPDetails(model));
 		}
 		[HttpGet]
 		[Route("deletesipdetails")]
 		public async Task<ActionResult> DeleteSIPDetails(string id)
 		{
-			FinancialMongoDBManager obj = new FinancialMongoDBManager();
+			FinancialMongoDbManager obj = new FinancialMongoDbManager();
 			return Ok(await obj.DeleteSIPDetails(id));
 		}
 
@@ -120,7 +121,7 @@ namespace FinancialDiaryWeb.Controllers
 		[Route("getinvestmentdataforchart")]
 		public async Task<ActionResult> GetInvestmentDataforChart()
 		{
-			FinancialMongoDBManager obj = new FinancialMongoDBManager();
+			FinancialMongoDbManager obj = new FinancialMongoDbManager();
 			return Ok(await obj.GetInvestmentReturnDataForChart());
 		}
 
@@ -128,7 +129,7 @@ namespace FinancialDiaryWeb.Controllers
 		[Route("getindividualinvestmentdataforchart")]
 		public async Task<ActionResult> GetIndividualInvestmentDataforChart()
 		{
-			FinancialMongoDBManager obj = new FinancialMongoDBManager();
+			FinancialMongoDbManager obj = new FinancialMongoDbManager();
 			return Ok(await obj.GetIndividualInvestmentReturnDataForChart());
 		}
 
@@ -136,7 +137,7 @@ namespace FinancialDiaryWeb.Controllers
 		[Route("getequityinvestmentreturndata")]
 		public async Task<ActionResult> GetEquityInvestmentDataforChart()
 		{
-			FinancialMongoDBManager obj = new FinancialMongoDBManager();
+			FinancialMongoDbManager obj = new FinancialMongoDbManager();
 			return Ok(await obj.GetEquityInvestmentReturnDataForChart());
 		}
 
@@ -144,14 +145,14 @@ namespace FinancialDiaryWeb.Controllers
 		[Route("saveequityinvestmentreturndata")]
 		public async Task<ActionResult> SaveEquityInvestmentDataforChart([FromForm] InvestmentReturns model)
 		{
-			FinancialMongoDBManager obj = new FinancialMongoDBManager();
+			FinancialMongoDbManager obj = new FinancialMongoDbManager();
 			return Ok(await obj.SaveEquityInvestmentReturnDetails(model.investedamount, model.currentvalue));
 		}
 		[HttpPost]
 		[Route("saveprovidentfunddetails")]
 		public async Task<ActionResult> SaveProvidentFundDetails([FromForm] InvestmentReturns model)
 		{
-			FinancialMongoDBManager obj = new FinancialMongoDBManager();
+			FinancialMongoDbManager obj = new FinancialMongoDbManager();
 			return Ok(await obj.SaveProvidentFundDetails(model.investedamount, model.currentvalue, model.type, model.profile));
 		}
 
@@ -159,7 +160,7 @@ namespace FinancialDiaryWeb.Controllers
 		[Route("getpfreturndataforchart")]
 		public async Task<ActionResult> GetPFInvestmentDataforChart()
 		{
-			FinancialMongoDBManager obj = new FinancialMongoDBManager();
+			FinancialMongoDbManager obj = new FinancialMongoDbManager();
 			return Ok(await obj.GetPFInvestmentReturnDataForChart());
 		}
 
@@ -167,7 +168,7 @@ namespace FinancialDiaryWeb.Controllers
 		[Route("getdashboarddata")]
 		public async Task<ActionResult> GetDashBoardData()
 		{
-			FinancialMongoDBManager obj = new FinancialMongoDBManager();
+			FinancialMongoDbManager obj = new FinancialMongoDbManager();
 			return Ok(await obj.GetDashBoardData());
 		}
 	}
