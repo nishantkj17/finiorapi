@@ -51,7 +51,6 @@ namespace FinancialDiaryWeb.Model
 		public double epfo { get; set; }
 		public double mutualfund { get; set; }
 		public double equity { get; set; }
-
 		public string date { get; set; }
 		public double ppf { get; set; }
 	}

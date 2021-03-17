@@ -9,6 +9,7 @@ using MongoDB.Bson;
 using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
+using MongoDB.Driver.Builders;
 
 namespace FinancialDiaryApi.Manager
 {
@@ -90,7 +91,7 @@ namespace FinancialDiaryApi.Manager
 			}
 			else if (!ifProfileEmpty)
 			{
-				builder.Eq(Constants.profile, profile);
+				filter = builder.Eq(Constants.profile, profile);
 			}
 			else if (!ifDateEmpty)
 			{
@@ -98,15 +99,7 @@ namespace FinancialDiaryApi.Manager
 			}
 			List<BsonDocument> docs = null;
 
-			if (filter == null)
-			{
-				docs = investmentRecord.Find(new BsonDocument()).ToList();
-			}
-			else
-			{
-				docs = investmentRecord.Find(filter).ToList();
-			}
-
+			docs = filter == null ? investmentRecord.Find(new BsonDocument()).ToList() : investmentRecord.Find(filter).ToList();
 
 			return docs.Select(item => new InvestmentDetails
 				{
@@ -334,30 +327,9 @@ namespace FinancialDiaryApi.Manager
 			return data;
 		}
 
-		private List<BsonDocument> GetBalanceDebtData(string collection, string order)
-		{
-			var investmentRecord = GetMongoCollection(collection);
-			var data = new List<BsonDocument>();
-			if (order.Equals(Constants.ByLatestDate))
-			{
-				//data = investmentRecord.Distinct("type",FilterDefinition<T>.Empty).Find(new BsonDocument())
-				//		   .Sort(Builders<BsonDocument>.Sort.Descending(Constants.createddate)
-				//		   .Descending(Constants.createddate))
-				//		   .ToList();
-			}
-			else
-			{
-				data = investmentRecord.Find(new BsonDocument())
-						   .Sort(Builders<BsonDocument>.Sort.Ascending(Constants.createddate)
-						   .Ascending(Constants.createddate))
-						   .ToList();
-			}
-			return data;
-		}
 		internal async Task<IEnumerable<InvestmentReturns>> GetCombinedMutualFundReturnDetails()
 		{
 			var docs = GetInvestmentReturnData(Constants.Sum, Constants.ByOldDate);
-
 			var combinedInvestment = new Dictionary<string, int>();
 			var outputData = new List<InvestmentReturns>();
 			foreach (var item in docs)
@@ -430,27 +402,13 @@ namespace FinancialDiaryApi.Manager
 				=> new InvestmentDetails {date = entry.Key, denomination = Convert.ToString(entry.Value)}).ToList();
 		}
 
-		internal async Task<int> SaveProvidentFundDetails(string profile, int investedamount, int currentvalue)
-		{
-			var investmentRecord = GetMongoCollection(Constants.Sum);
-			var returns = ((double)(currentvalue - investedamount) / (double)investedamount) * 100;
-			var doc = new BsonDocument
-			{
-				{Constants.profile, profile },
-				{Constants.investedamount, investedamount},
-				{Constants.currentvalue, currentvalue},
-				{Constants.returns, Math.Round(returns, 2)},
-				{Constants.createddate, DateTime.Now.ToString(Constants.ddMMMMyyyy) }
-			};
-
-			await investmentRecord.InsertOneAsync(doc);
-			return 0;
-		}
-
 		internal async Task<DashboardData> GetAssetsDashBoardData()
 		{
 			double epfoData = 0;
 			double ppfData = 0;
+			double mutualFundData = GetCombinedMutualFundReturnDetails().Result.Last().currentvalue;
+			double equityData = (int)GetInvestmentReturnData(Constants.Equity, Constants.ByLatestDate).FirstOrDefault()?[Constants.currentvalue];
+
 			foreach (var item in GetInvestmentReturnData(Constants.EPFO, Constants.ByLatestDate))
 			{
 				if (((string)item[Constants.type]).Equals(Constants.EPFO))
@@ -462,9 +420,7 @@ namespace FinancialDiaryApi.Manager
 					ppfData += (int)item[Constants.contribution] + (int)item[Constants.interest];
 				}
 			}
-			double mutualFundData = GetCombinedMutualFundReturnDetails().Result.Last().currentvalue;
-			double equityData = (int)GetInvestmentReturnData(Constants.Equity, Constants.ByLatestDate).FirstOrDefault()?[Constants.currentvalue];
-			
+
 			var obj = new DashboardData
 			{
 				epfo = epfoData,
@@ -473,6 +429,25 @@ namespace FinancialDiaryApi.Manager
 				ppf = ppfData
 			};
 			return obj;
+		}
+
+		internal async Task<IEnumerable<DebtDetails>> GetDebtsDashBoardData()
+		{
+			var debtRecords = GetMongoCollection(Constants.Debt);
+			var latestDate = (string)debtRecords.Find(new BsonDocument())
+				.Sort(Builders<BsonDocument>.Sort.Descending(Constants.createddate)
+					.Descending(Constants.createddate))
+				.ToList().FirstOrDefault()?[Constants.createddate];
+			var filter = Builders<BsonDocument>.Filter.Eq(Constants.createddate, latestDate);
+
+			var docs = filter == null ? debtRecords.Find(new BsonDocument()).ToList() : debtRecords.Find(filter).ToList();
+			return docs.Select(item => new DebtDetails
+			{
+				accountname = (string)item[Constants.accountname],
+				currentbalance = (int)item[Constants.currentBalance],
+				createddate = (string)item[Constants.createddate],
+				id = Convert.ToString((ObjectId)item[Constants._id])
+			}).ToList();
 		}
 
 		internal async Task<List<string>> GetDebtAccountName()

@@ -166,7 +166,7 @@ namespace FinancialDiaryWeb.Controllers
 
 		[HttpGet]
 		[Route("getassetsdashboarddata")]
-		public async Task<ActionResult> GetDashBoardData()
+		public async Task<ActionResult> GetAssetsDashBoardData()
 		{
 			var obj = new FinancialMongoDbManager();
 			return Ok(await obj.GetAssetsDashBoardData());
@@ -178,6 +178,13 @@ namespace FinancialDiaryWeb.Controllers
 		{
 			var obj = new FinancialMongoDbManager();
 			return Ok(await obj.GetDebtAccountName());
+		}
+		[HttpGet]
+		[Route("getdebtsdashboarddata")]
+		public async Task<ActionResult> GetDebtsDashBoardData()
+		{
+			var obj = new FinancialMongoDbManager();
+			return Ok(await obj.GetDebtsDashBoardData());
 		}
 	}
 
