@@ -36,7 +36,7 @@ namespace FinancialDiaryApi.Manager
 				{Constants.profile, profile }
 			};
 
-			investmentRecord.InsertOne(doc);
+			await investmentRecord.InsertOneAsync(doc);
 			return 0;
 		}
 		public async Task<int> AddDebt(string accountname, int currentBalance)
@@ -49,7 +49,7 @@ namespace FinancialDiaryApi.Manager
 				{Constants.currentBalance, currentBalance}
 			};
 
-			debtRecord.InsertOne(doc);
+			await debtRecord.InsertOneAsync(doc);
 			return 0;
 		}
 		public async Task<IEnumerable<InvestmentDetails>> GetInvestmentDetails()
@@ -126,7 +126,7 @@ namespace FinancialDiaryApi.Manager
 					.Set(Constants.date, model.date)
 					.Set(Constants.amount, model.denomination)
 					.Set(Constants.profile, model.profile);
-			GetMongoCollection(Constants.Diary).UpdateOne(filter, update);
+			await GetMongoCollection(Constants.Diary).UpdateOneAsync(filter, update);
 			return 0;
 		}
 
@@ -212,7 +212,7 @@ namespace FinancialDiaryApi.Manager
 				{Constants.createddate, DateTime.Now.ToString(Constants.ddMMMMyyyy) }
 			};
 
-			investmentRecord.InsertOne(doc);
+			await investmentRecord.InsertOneAsync(doc);
 			return 0;
 		}
 
@@ -228,7 +228,7 @@ namespace FinancialDiaryApi.Manager
 				{Constants.createddate, DateTime.Now.ToString(Constants.ddMMMMyyyy) }
 			};
 			CollectionBackup();
-			investmentRecord.InsertOne(doc);
+			await investmentRecord.InsertOneAsync(doc);
 			return 0;
 		}
 
@@ -294,18 +294,15 @@ namespace FinancialDiaryApi.Manager
 				{Constants.createddate, DateTime.Now.ToString(Constants.ddMMMMyyyy) }
 			};
 
-			investmentRecord.InsertOne(doc);
+			await investmentRecord.InsertOneAsync(doc);
 			return 0;
 		}
 
 		internal async Task<IEnumerable<InvestmentReturns>> GetInvestmentReturnDetails()
 		{
 			var docs = GetInvestmentReturnData(Constants.Sum, Constants.ByOldDate);
-			var outputData = new List<InvestmentReturns>();
 
-			foreach (var item in docs)
-			{
-				var obj = new InvestmentReturns
+			return docs.Select(item => new InvestmentReturns
 				{
 					investedamount = (int) item[Constants.investedamount],
 					currentvalue = (int) item[Constants.currentvalue],
@@ -313,10 +310,8 @@ namespace FinancialDiaryApi.Manager
 					profile = (string) item[Constants.profile],
 					createddate = (string) item[Constants.createddate],
 					id = Convert.ToString((ObjectId) item[Constants._id])
-				};
-				outputData.Add(obj);
-			}
-			return outputData;
+				})
+				.ToList();
 		}
 		private List<BsonDocument> GetInvestmentReturnData(string collection, string order)
 		{
@@ -448,11 +443,11 @@ namespace FinancialDiaryApi.Manager
 				{Constants.createddate, DateTime.Now.ToString(Constants.ddMMMMyyyy) }
 			};
 
-			investmentRecord.InsertOne(doc);
+			await investmentRecord.InsertOneAsync(doc);
 			return 0;
 		}
 
-		internal async Task<DashboardData> GetDashBoardData()
+		internal async Task<DashboardData> GetAssetsDashBoardData()
 		{
 			double epfoData = 0;
 			double ppfData = 0;
@@ -483,7 +478,7 @@ namespace FinancialDiaryApi.Manager
 		internal async Task<List<string>> GetDebtAccountName()
 		{
 			var debtAccounts = GetMongoCollection(Constants.DebtAccounts).Find(new BsonDocument()).ToList();
-			return debtAccounts.Select(item => (string) item[Constants.investedamount]).ToList();
+			return debtAccounts.Select(item => (string) item[Constants.name]).ToList();
 		}
 
 		private async void CollectionBackup()

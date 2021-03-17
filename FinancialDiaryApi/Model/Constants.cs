@@ -42,5 +42,6 @@ namespace FinancialDiaryApi.Model
         public const string currentBalance = "currentBalance";
         public const string accountname = "accountname";
         public const string DebtAccounts = "DebtAccounts";
+        public const string name = "name";
     }
 }
