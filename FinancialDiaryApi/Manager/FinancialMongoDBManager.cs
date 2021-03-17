@@ -450,6 +450,35 @@ namespace FinancialDiaryApi.Manager
 			}).ToList();
 		}
 
+		internal async Task<int> RefreshDebtAndInvestmentDataForChart()
+		{
+			var debtInvestmentRecord = GetMongoCollection(Constants.DebtAndInvestment);
+			var latestDate = (string)debtInvestmentRecord.Find(new BsonDocument())
+				.Sort(Builders<BsonDocument>.Sort.Descending(Constants.createddate)
+					.Descending(Constants.createddate))
+				.ToList().FirstOrDefault()?[Constants.createddate];
+			
+			var filter = Builders<BsonDocument>.Filter.Eq(Constants.createddate, latestDate);
+
+			var docs = filter == null ? debtInvestmentRecord.Find(new BsonDocument()).ToList() : debtInvestmentRecord.Find(filter).ToList();
+			if (docs.Count > 0)
+				return 0;
+
+			var assetData = GetAssetsDashBoardData().Result;
+			var debtData = GetDebtsDashBoardData().Result;
+			var cumulativeDebt = debtData.Sum(item => item.currentbalance);
+			
+			var doc = new BsonDocument
+			{
+				{Constants.totaldebt, cumulativeDebt},
+				{Constants.totalinvestments, assetData.epfo+assetData.equity+assetData.mutualfund+assetData.ppf},
+				{Constants.createddate, DateTime.Now.ToString(Constants.ddMMMMyyyy)}
+			};
+
+			await debtInvestmentRecord.InsertOneAsync(doc);
+			return 1;
+		}
+
 		internal async Task<List<string>> GetDebtAccountName()
 		{
 			var debtAccounts = GetMongoCollection(Constants.DebtAccounts).Find(new BsonDocument()).ToList();

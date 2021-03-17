@@ -61,4 +61,11 @@ namespace FinancialDiaryWeb.Model
 		public int currentbalance { get; set; }
 		public string id { get; set; }
 	}
+
+	public class DebtAndInvestmentDetails
+	{
+		public string totaldebt { get; set; }
+		public string totalinvestments { get; set; }
+		public string id { get; set; }
+	}
 }
