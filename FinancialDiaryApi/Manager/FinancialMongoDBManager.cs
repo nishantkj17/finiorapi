@@ -402,7 +402,7 @@ namespace FinancialDiaryApi.Manager
 				=> new InvestmentDetails {date = entry.Key, denomination = Convert.ToString(entry.Value)}).ToList();
 		}
 
-		internal async Task<DashboardData> GetAssetsDashBoardData()
+		internal async Task<IEnumerable<DashboardAssetDetails>> GetAssetsDashBoardData()
 		{
 			double epfoData = 0;
 			double ppfData = 0;
@@ -421,14 +421,27 @@ namespace FinancialDiaryApi.Manager
 				}
 			}
 
-			var obj = new DashboardData
+			var outputData = new List<DashboardAssetDetails>
 			{
-				epfo = epfoData,
-				equity = equityData,
-				mutualfund = mutualFundData,
-				ppf = ppfData
+				new DashboardAssetDetails
+				{
+					cardclass = "bg-primary", investmenttype = Constants.mutualfund, currentvalue = mutualFundData
+				},
+				new DashboardAssetDetails
+				{
+					cardclass = "bg-success", investmenttype = Constants.Equity, currentvalue = equityData
+				},
+				new DashboardAssetDetails
+				{
+					cardclass = "bg-warning", investmenttype = Constants.EPFO, currentvalue = epfoData
+				},
+				new DashboardAssetDetails
+				{
+					cardclass = "bg-primary", investmenttype = Constants.ppf, currentvalue = ppfData
+				}
 			};
-			return obj;
+
+			return outputData;
 		}
 
 		internal async Task<IEnumerable<DebtDetails>> GetDebtsDashBoardData()
@@ -467,11 +480,11 @@ namespace FinancialDiaryApi.Manager
 			var assetData = GetAssetsDashBoardData().Result;
 			var debtData = GetDebtsDashBoardData().Result;
 			var cumulativeDebt = debtData.Sum(item => item.currentbalance);
-			
+			var cumulativeAsset = assetData.Sum(item => item.currentvalue);
 			var doc = new BsonDocument
 			{
 				{Constants.totaldebt, cumulativeDebt},
-				{Constants.totalinvestments, assetData.epfo+assetData.equity+assetData.mutualfund+assetData.ppf},
+				{Constants.totalinvestments, cumulativeAsset},
 				{Constants.createddate, DateTime.Now.ToString(Constants.ddMMMMyyyy)}
 			};
 

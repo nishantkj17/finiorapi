@@ -25,6 +25,8 @@ namespace FinancialDiaryApi.Model
         public const string CurrentvalueLabel = "Current value";
         public const string Equity = "Equity";
         public const string EPFO = "EPFO";
+        public const string ppf = "Public provident fund";
+        public const string mutualfund = "Mutual Fund";
         public const string contribution = "contribution";
         public const string type = "type";
         public const string interest = "interest";

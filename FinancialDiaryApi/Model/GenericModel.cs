@@ -53,6 +53,14 @@ namespace FinancialDiaryWeb.Model
 		public double equity { get; set; }
 		public string date { get; set; }
 		public double ppf { get; set; }
+		public string cardclass { get; set; }
+	}
+
+	public class DashboardAssetDetails
+	{
+		public string cardclass { get; set; }
+		public string investmenttype { get; set; }
+		public double currentvalue { get; set; }
 	}
 	public class DebtDetails
 	{
