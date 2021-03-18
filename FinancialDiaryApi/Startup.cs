@@ -29,7 +29,7 @@ namespace FinancialDiaryApi
 			{
 				c.AddPolicy(name: "AllowSpecificOrigins", options => options.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
 			});
-			
+			services.AddSwaggerGen();
 			services.AddControllers();
 		}
 
@@ -40,6 +40,11 @@ namespace FinancialDiaryApi
 			{
 				app.UseDeveloperExceptionPage();
 			}
+			app.UseSwagger();
+			app.UseSwaggerUI(c =>
+			{
+				c.SwaggerEndpoint("/swagger/v1/swagger.json", "Finior API V1");
+			});
 			app.UseCors(options => options.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
 			app.UseHttpsRedirection();
 

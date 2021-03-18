@@ -72,3 +72,8 @@ C:\finiorapi\FinancialDiaryApi\obj\Debug\netcoreapp3.1\FinancialDiaryApi.csproj.
 C:\finiorapi\FinancialDiaryApi\obj\Debug\netcoreapp3.1\FinancialDiaryApi.dll
 C:\finiorapi\FinancialDiaryApi\obj\Debug\netcoreapp3.1\FinancialDiaryApi.pdb
 C:\finiorapi\FinancialDiaryApi\obj\Debug\netcoreapp3.1\FinancialDiaryApi.genruntimeconfig.cache
+C:\finiorapi\FinancialDiaryApi\bin\Debug\netcoreapp3.1\Microsoft.OpenApi.dll
+C:\finiorapi\FinancialDiaryApi\bin\Debug\netcoreapp3.1\Swashbuckle.AspNetCore.Swagger.dll
+C:\finiorapi\FinancialDiaryApi\bin\Debug\netcoreapp3.1\Swashbuckle.AspNetCore.SwaggerGen.dll
+C:\finiorapi\FinancialDiaryApi\bin\Debug\netcoreapp3.1\Swashbuckle.AspNetCore.SwaggerUI.dll
+C:\finiorapi\FinancialDiaryApi\obj\Debug\netcoreapp3.1\FinancialDiaryApi.MvcApplicationPartsAssemblyInfo.cs
