@@ -504,13 +504,13 @@ namespace FinancialDiaryApi.Manager
 
 		private async void CollectionBackup()
 		{
-			var outputFileName = "C:\\repos\\"; // initialize to the output file
+			var outputFileName = Constants.outputPath; // initialize to the output file
 			var db = _dbClient.GetDatabase(Constants.Financials);
 			IMongoCollection<BsonDocument> collection;  // initialize to the collection to read from
 			foreach (var item in db.ListCollectionsAsync().Result.ToListAsync<BsonDocument>().Result)
 			{
-				outputFileName += (string)item["name"] + ".json";
-				collection = GetMongoCollection((string)item["name"]);
+				outputFileName += (string)item[Constants.name] + ".json";
+				collection = GetMongoCollection((string)item[Constants.name]);
 				using (var streamWriter = new StreamWriter(outputFileName))
 				{
 					await collection.Find(new BsonDocument())
@@ -525,7 +525,7 @@ namespace FinancialDiaryApi.Manager
 								await streamWriter.WriteLineAsync(line);
 							}
 						});
-					outputFileName = "C:\\repos\\";
+					outputFileName = Constants.outputPath;
 				}
 			}
 
