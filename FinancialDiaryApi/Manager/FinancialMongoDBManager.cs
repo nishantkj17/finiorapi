@@ -63,11 +63,11 @@ namespace FinancialDiaryApi.Manager
 			{
 				var obj = new InvestmentDetails
 				{
-					fundName = (string) item[Constants.fundName],
-					date = (string) item[Constants.date],
-					denomination = (string) item[Constants.amount],
-					profile = (string) item[Constants.profile],
-					id = Convert.ToString((ObjectId) item[Constants._id])
+					fundName = (string)item[Constants.fundName],
+					date = (string)item[Constants.date],
+					denomination = (string)item[Constants.amount],
+					profile = (string)item[Constants.profile],
+					id = Convert.ToString((ObjectId)item[Constants._id])
 				};
 
 				outputData.Add(obj);
@@ -102,13 +102,13 @@ namespace FinancialDiaryApi.Manager
 			docs = filter == null ? investmentRecord.Find(new BsonDocument()).ToList() : investmentRecord.Find(filter).ToList();
 
 			return docs.Select(item => new InvestmentDetails
-				{
-					fundName = (string) item[Constants.fundName],
-					date = (string) item[Constants.date],
-					denomination = (string) item[Constants.amount],
-					profile = (string) item[Constants.profile],
-					id = Convert.ToString((ObjectId) item[Constants._id])
-				})
+			{
+				fundName = (string)item[Constants.fundName],
+				date = (string)item[Constants.date],
+				denomination = (string)item[Constants.amount],
+				profile = (string)item[Constants.profile],
+				id = Convert.ToString((ObjectId)item[Constants._id])
+			})
 				.ToList();
 		}
 
@@ -228,7 +228,7 @@ namespace FinancialDiaryApi.Manager
 		internal async Task<InvestmentReturnDataForChart> GetIndividualInvestmentReturnDataForChart()
 		{
 			var investmentReturnData = GetInvestmentReturnDetails();
-			var count = investmentReturnData.Result.Count()/2;
+			var count = investmentReturnData.Result.Count() / 2;
 			var ranjanaInvestedAmountData = new int[count];
 			var ranjanaCurrentValueData = new int[count];
 			var nishantInvestedAmountData = new int[count];
@@ -244,7 +244,7 @@ namespace FinancialDiaryApi.Manager
 			{
 				if (item.profile == Constants.RanjanaJha)
 				{
-					
+
 					ranjanaInvestedAmountData[counterRanjana] = item.investedamount;
 					ranjanaCurrentValueData[counterRanjana] = item.currentvalue;
 					counterRanjana++;
@@ -296,23 +296,23 @@ namespace FinancialDiaryApi.Manager
 			var docs = GetInvestmentReturnData(Constants.Sum, Constants.ByOldDate);
 
 			return docs.Select(item => new InvestmentReturns
-				{
-					investedamount = (int) item[Constants.investedamount],
-					currentvalue = (int) item[Constants.currentvalue],
-					returns = (double) item[Constants.returns],
-					profile = (string) item[Constants.profile],
-					createddate = (string) item[Constants.createddate],
-					id = Convert.ToString((ObjectId) item[Constants._id])
-				})
+			{
+				investedamount = (int)item[Constants.investedamount],
+				currentvalue = (int)item[Constants.currentvalue],
+				returns = (double)item[Constants.returns],
+				profile = (string)item[Constants.profile],
+				createddate = (string)item[Constants.createddate],
+				id = Convert.ToString((ObjectId)item[Constants._id])
+			})
 				.ToList();
 		}
 		private List<BsonDocument> GetInvestmentReturnData(string collection, string order)
 		{
 			var investmentRecord = GetMongoCollection(collection);
 			List<BsonDocument> data;
-			if(order.Equals(Constants.ByLatestDate))
+			if (order.Equals(Constants.ByLatestDate))
 			{
-				data =investmentRecord.Find(new BsonDocument())
+				data = investmentRecord.Find(new BsonDocument())
 						   .Sort(Builders<BsonDocument>.Sort.Descending(Constants.createddate)
 						   .Descending(Constants.createddate))
 						   .ToList();
@@ -376,8 +376,8 @@ namespace FinancialDiaryApi.Manager
 				}
 			}
 
-			return sipDetailsFund.OrderBy(i => i.Key).Select(entry 
-				=> new InvestmentDetails {fundName = entry.Key, denomination = Convert.ToString(entry.Value)}).ToList();
+			return sipDetailsFund.OrderBy(i => i.Key).Select(entry
+				=> new InvestmentDetails { fundName = entry.Key, denomination = Convert.ToString(entry.Value) }).ToList();
 		}
 
 		internal async Task<IEnumerable<InvestmentDetails>> GetSIPDetailsByDate()
@@ -399,7 +399,7 @@ namespace FinancialDiaryApi.Manager
 			}
 
 			return sipDetailsFund.OrderBy(i => i.Key).Select(entry
-				=> new InvestmentDetails {date = entry.Key, denomination = Convert.ToString(entry.Value)}).ToList();
+				=> new InvestmentDetails { date = entry.Key, denomination = Convert.ToString(entry.Value) }).ToList();
 		}
 
 		internal async Task<IEnumerable<DashboardAssetDetails>> GetAssetsDashBoardData()
@@ -470,12 +470,16 @@ namespace FinancialDiaryApi.Manager
 				.Sort(Builders<BsonDocument>.Sort.Descending(Constants.createddate)
 					.Descending(Constants.createddate))
 				.ToList().FirstOrDefault()?[Constants.createddate];
-			
+
 			var filter = Builders<BsonDocument>.Filter.Eq(Constants.createddate, latestDate);
 
 			var docs = filter == null ? debtInvestmentRecord.Find(new BsonDocument()).ToList() : debtInvestmentRecord.Find(filter).ToList();
 			if (docs.Count > 0)
-				return 0;
+			{
+				var lastEntry = (string)docs[0][Constants.createddate];
+				if (lastEntry.Contains((DateTime.Now.ToString(Constants.MMMM))))
+					return 0;
+			}
 
 			var assetData = GetAssetsDashBoardData().Result;
 			var debtData = GetDebtsDashBoardData().Result;
@@ -495,12 +499,12 @@ namespace FinancialDiaryApi.Manager
 		internal async Task<List<string>> GetDebtAccountName()
 		{
 			var debtAccounts = GetMongoCollection(Constants.DebtAccounts).Find(new BsonDocument()).ToList();
-			return debtAccounts.Select(item => (string) item[Constants.name]).ToList();
+			return debtAccounts.Select(item => (string)item[Constants.name]).ToList();
 		}
 
 		private async void CollectionBackup()
 		{
-			var outputFileName="C:\\repos\\"; // initialize to the output file
+			var outputFileName = "C:\\repos\\"; // initialize to the output file
 			var db = _dbClient.GetDatabase(Constants.Financials);
 			IMongoCollection<BsonDocument> collection;  // initialize to the collection to read from
 			foreach (var item in db.ListCollectionsAsync().Result.ToListAsync<BsonDocument>().Result)
@@ -524,7 +528,7 @@ namespace FinancialDiaryApi.Manager
 					outputFileName = "C:\\repos\\";
 				}
 			}
-	
+
 		}
 	}
 }
