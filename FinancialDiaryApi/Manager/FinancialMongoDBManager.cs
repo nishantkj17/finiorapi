@@ -284,8 +284,8 @@ namespace FinancialDiaryApi.Manager
 			}
 			var chartData = new List<Returns>
 			{
-				new Returns { Label = Constants.Debt, Data = debtData,  pointRadius=0 },
-				new Returns { Label = Constants.SavingsInvestment, Data = investedAmountData, pointRadius=0 }
+				new Returns { Label = Constants.Debt, Data = debtData,  pointRadius=2 },
+				new Returns { Label = Constants.SavingsInvestment, Data = investedAmountData, pointRadius=2 }
 			};
 
 			return new InvestmentReturnDataForChart { InvestmentReturnChart = chartData, ChartLabels = lineChartLabelsList.ToArray() };
