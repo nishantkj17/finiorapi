@@ -127,8 +127,8 @@ namespace FinancialDiaryApi.Manager
 		{
 			var investmentReturnData = GetCombinedMutualFundReturnDetails();
 			var count = investmentReturnData.Result.Count();
-			var investedAmountData = new int[count];
-			var currentValueData = new int[count];
+			var investedAmountData = new double[count];
+			var currentValueData = new double[count];
 			var lineChartLabelsList = new List<string>();
 			var counter = 0;
 			foreach (var item in investmentReturnData.Result)
@@ -152,8 +152,8 @@ namespace FinancialDiaryApi.Manager
 			var docs = GetInvestmentReturnData(Constants.Equity, Constants.ByOldDate);
 
 			var lineChartLabelsList = new List<string>();
-			var investedAmountData = new int[docs.Count];
-			var currentValueData = new int[docs.Count];
+			var investedAmountData = new double[docs.Count];
+			var currentValueData = new double[docs.Count];
 			var counter = 0;
 			foreach (var item in docs)
 			{
@@ -176,8 +176,8 @@ namespace FinancialDiaryApi.Manager
 			var docs = GetInvestmentReturnData(Constants.EPFO, Constants.ByOldDate);
 
 			var lineChartLabelsList = new List<string>();
-			var contributionData = new int[docs.Count];
-			var interest = new int[docs.Count];
+			var contributionData = new double[docs.Count];
+			var interest = new double[docs.Count];
 			var counter = 0;
 			foreach (var item in docs)
 			{
@@ -229,10 +229,10 @@ namespace FinancialDiaryApi.Manager
 		{
 			var investmentReturnData = GetInvestmentReturnDetails();
 			var count = investmentReturnData.Result.Count() / 2;
-			var ranjanaInvestedAmountData = new int[count];
-			var ranjanaCurrentValueData = new int[count];
-			var nishantInvestedAmountData = new int[count];
-			var nishantCurrentValueData = new int[count];
+			var ranjanaInvestedAmountData = new double[count];
+			var ranjanaCurrentValueData = new double[count];
+			var nishantInvestedAmountData = new double[count];
+			var nishantCurrentValueData = new double[count];
 			List<string> lineChartLabelsList = new List<string>();
 			int counterNishant = 0;
 			int counterRanjana = 0;
@@ -266,6 +266,31 @@ namespace FinancialDiaryApi.Manager
 
 			return new InvestmentReturnDataForChart { InvestmentReturnChart = chartData, ChartLabels = lineChartLabelsList.ToArray() };
 		}
+
+		internal async Task<InvestmentReturnDataForChart> GetDebtAndInvestmentForChart()
+		{
+			var docs = GetInvestmentReturnData(Constants.DebtAndInvestment, Constants.ByOldDate);
+
+			var lineChartLabelsList = new List<string>();
+			var investedAmountData = new double[docs.Count];
+			var debtData = new double[docs.Count];
+			var counter = 0;
+			foreach (var item in docs)
+			{
+				lineChartLabelsList.AddRange(new string[] { "" });
+				investedAmountData[counter] = (double)item[Constants.totalinvestments];
+				debtData[counter] = (double)item[Constants.totaldebt];
+				counter++;
+			}
+			var chartData = new List<Returns>
+			{
+				new Returns { Label = Constants.Debt, Data = debtData,  pointRadius=0 },
+				new Returns { Label = Constants.SavingsInvestment, Data = investedAmountData, pointRadius=0 }
+			};
+
+			return new InvestmentReturnDataForChart { InvestmentReturnChart = chartData, ChartLabels = lineChartLabelsList.ToArray() };
+		}
+
 		internal async Task<int> DeleteSIPDetails(string id)
 		{
 			var deleteFilter = Builders<BsonDocument>.Filter.Eq(Constants._id, MongoDB.Bson.ObjectId.Parse(id));
@@ -483,8 +508,8 @@ namespace FinancialDiaryApi.Manager
 
 			var assetData = GetAssetsDashBoardData().Result;
 			var debtData = GetDebtsDashBoardData().Result;
-			var cumulativeDebt = debtData.Sum(item => item.currentbalance);
-			var cumulativeAsset = assetData.Sum(item => item.currentvalue);
+			double cumulativeDebt = debtData.Sum(item => item.currentbalance);
+			double cumulativeAsset = assetData.Sum(item => item.currentvalue);
 			var doc = new BsonDocument
 			{
 				{Constants.totaldebt, cumulativeDebt},

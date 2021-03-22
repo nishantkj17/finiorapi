@@ -40,7 +40,7 @@ namespace FinancialDiaryWeb.Model
 	}
 	public class Returns
 	{
-		public int[] Data { get; set; }
+		public double[] Data { get; set; }
 		public string Label { get; set; }
 
 		public int pointRadius { get; set; }

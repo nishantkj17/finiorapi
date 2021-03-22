@@ -50,5 +50,6 @@ namespace FinancialDiaryApi.Model
         public const string totaldebt = "totaldebt";
         public const string totalinvestments = "totalinvestments";
         public const  string outputPath= "C:\\FiniorDistribution\\MongoBackupJson\\";
+        public const string SavingsInvestment = "Savings/Investment";
     }
 }

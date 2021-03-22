@@ -194,6 +194,14 @@ namespace FinancialDiaryWeb.Controllers
 			var obj = new FinancialMongoDbManager();
 			return Ok(await obj.RefreshDebtAndInvestmentDataForChart());
 		}
+
+		[HttpGet]
+		[Route("getdebtinvestmentforchart")]
+		public async Task<ActionResult> GetDebtInvestmentDataforChart()
+		{
+			var obj = new FinancialMongoDbManager();
+			return Ok(await obj.GetDebtAndInvestmentForChart());
+		}
 	}
 
 }
