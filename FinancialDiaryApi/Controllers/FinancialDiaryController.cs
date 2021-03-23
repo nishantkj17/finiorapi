@@ -150,10 +150,10 @@ namespace FinancialDiaryWeb.Controllers
 		}
 		[HttpPost]
 		[Route("saveprovidentfunddetails")]
-		public async Task<ActionResult> SaveProvidentFundDetails([FromForm] InvestmentReturns model)
+		public async Task<ActionResult> SaveProvidentFundDetails([FromForm] ProvidentFundDetails model)
 		{
 			var obj = new FinancialMongoDbManager();
-			return Ok(await obj.SaveProvidentFundDetails(model.investedamount, model.currentvalue, model.type, model.profile));
+			return Ok(await obj.SaveProvidentFundDetails(model.epfoPrimaryBalance,  model.ppfBalance, model.type, model.profile));
 		}
 
 		[HttpGet]

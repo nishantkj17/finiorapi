@@ -76,4 +76,12 @@ namespace FinancialDiaryWeb.Model
 		public string totalinvestments { get; set; }
 		public string id { get; set; }
 	}
+	public class ProvidentFundDetails
+	{
+		public string type { get; set; }
+		public string profile { get; set; }
+		public double epfoPrimaryBalance { get; set; }
+		public double ppfBalance { get; set; }
+		public string id { get; set; }
+	}
 }

@@ -176,33 +176,62 @@ namespace FinancialDiaryApi.Manager
 			var docs = GetInvestmentReturnData(Constants.EPFO, Constants.ByOldDate);
 
 			var lineChartLabelsList = new List<string>();
-			var contributionData = new double[docs.Count];
-			var interest = new double[docs.Count];
 			var counter = 0;
+
+			//-------------------------------------------------------------------------------------------------------------------------------
+			var epfoPrimaryBalance = new double[docs.Count];
+			var epfoSecondaryBalance = new double[docs.Count];
+			var ppfBalance = new double[docs.Count];
+
 			foreach (var item in docs)
 			{
-				lineChartLabelsList.AddRange(new string[] { (string)item[Constants.profile] });
-				contributionData[counter] = (int)item[Constants.contribution];
-				interest[counter] = (int)item[Constants.interest];
+				lineChartLabelsList.AddRange(new string[] { "" });
+				if (Convert.ToString(item[Constants.type]).Equals("EPFO"))
+				{
+					if (Convert.ToString(item[Constants.profile]).Contains("Nishant"))
+					{
+						epfoSecondaryBalance[counter] = (double)item[Constants.epfoPrimaryBalance];
+					}
+					else
+					{
+						epfoPrimaryBalance[counter] = (double)item[Constants.epfoPrimaryBalance];
+					}
+				}
+				else
+				{
+					ppfBalance[counter] = (double)item[Constants.ppfBalance];
+				}
 				counter++;
 			}
-			var chartData = new List<Returns>();
-			chartData.Add(new Returns { Label = Constants.Contribution, Data = contributionData });
-			chartData.Add(new Returns { Label = Constants.Interest, Data = interest });
+			epfoPrimaryBalance = epfoPrimaryBalance.Where(x =>  x!=0).ToArray();
+			epfoSecondaryBalance = epfoSecondaryBalance.Where(x =>  x != 0).ToArray();
+			ppfBalance = ppfBalance.Where(x =>  x != 0).ToArray();
+			if (lineChartLabelsList.Count > (lineChartLabelsList.Count - epfoPrimaryBalance.Length) / 2)
+			{
+				lineChartLabelsList.RemoveRange((lineChartLabelsList.Count - epfoPrimaryBalance.Length) / 2, (lineChartLabelsList.Count- epfoPrimaryBalance.Length));
+			}
+
+			var chartData = new List<Returns>
+			{
+				new Returns { Label = Constants.NCurrentvalue, Data = epfoSecondaryBalance,  pointRadius=0 },
+				new Returns { Label = Constants.RCurrentValue, Data = epfoPrimaryBalance, pointRadius=0 },
+				new Returns { Label = Constants.ppf, Data = ppfBalance, pointRadius=0 }
+			};
+
 
 			return new InvestmentReturnDataForChart { InvestmentReturnChart = chartData, ChartLabels = lineChartLabelsList.ToArray() };
 		}
 
-		internal async Task<int> SaveProvidentFundDetails(int contribution, int interest, string type, string profile)
+		internal async Task<int> SaveProvidentFundDetails(double primaryBalance,double ppfBalance, string type, string profile)
 		{
 			var investmentRecord = GetMongoCollection(Constants.EPFO);
 			var doc = new BsonDocument
 			{
-				{Constants.contribution, contribution},
-				{Constants.interest, interest},
+				{Constants.epfoPrimaryBalance, primaryBalance},
+				{Constants.ppfBalance, ppfBalance},
 				{Constants.type, type},
 				{Constants.profile, profile},
-				{Constants.createddate, DateTime.Now.ToString(Constants.ddMMMMyyyy) }
+				{Constants.createddate, DateTime.Now }
 			};
 
 			await investmentRecord.InsertOneAsync(doc);
@@ -434,15 +463,15 @@ namespace FinancialDiaryApi.Manager
 			double mutualFundData = GetCombinedMutualFundReturnDetails().Result.Last().currentvalue;
 			double equityData = (int)GetInvestmentReturnData(Constants.Equity, Constants.ByLatestDate).FirstOrDefault()?[Constants.currentvalue];
 
-			foreach (var item in GetInvestmentReturnData(Constants.EPFO, Constants.ByLatestDate))
+			foreach (var item in GetInvestmentReturnData(Constants.EPFO, Constants.ByLatestDate).GetRange(0,3))
 			{
 				if (((string)item[Constants.type]).Equals(Constants.EPFO))
 				{
-					epfoData += (int)item[Constants.contribution] + (int)item[Constants.interest];
+					epfoData += (double)item[Constants.epfoPrimaryBalance];
 				}
 				else
 				{
-					ppfData += (int)item[Constants.contribution] + (int)item[Constants.interest];
+					ppfData += (double)item[Constants.ppfBalance];
 				}
 			}
 
