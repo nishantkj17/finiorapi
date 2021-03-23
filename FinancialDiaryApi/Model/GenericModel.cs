@@ -1,4 +1,5 @@
-﻿using MongoDB.Bson;
+﻿using System;
+using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using System.Collections.Generic;
 
@@ -65,7 +66,7 @@ namespace FinancialDiaryWeb.Model
 	public class DebtDetails
 	{
 		public string accountname { get; set; }
-		public string createddate { get; set; }
+		public DateTime createddate { get; set; }
 		public int currentbalance { get; set; }
 		public string id { get; set; }
 	}

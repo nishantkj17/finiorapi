@@ -46,7 +46,7 @@ namespace FinancialDiaryApi.Manager
 			var doc = new BsonDocument
 			{
 				{Constants.accountname, accountname},
-				{Constants.createddate, DateTime.Now.ToString(Constants.ddMMMMyyyy)},
+				{Constants.createddate, DateTime.Now},
 				{Constants.currentBalance, currentBalance}
 			};
 
@@ -247,7 +247,7 @@ namespace FinancialDiaryApi.Manager
 				{Constants.investedamount, investedamount},
 				{Constants.currentvalue, currentvalue},
 				{Constants.returns, Math.Round(returns, 2)},
-				{Constants.createddate, DateTime.Now.ToString(Constants.ddMMMMyyyy) }
+				{Constants.createddate, DateTime.Now }
 			};
 			CollectionBackup();
 			await investmentRecord.InsertOneAsync(doc);
@@ -338,7 +338,7 @@ namespace FinancialDiaryApi.Manager
 				{Constants.investedamount, investedamount},
 				{Constants.currentvalue, currentvalue},
 				{Constants.returns, Math.Round(returns, 2)},
-				{Constants.createddate, DateTime.Now.ToString(Constants.ddMMMMyyyy) }
+				{Constants.createddate, DateTime.Now }
 			};
 
 			await investmentRecord.InsertOneAsync(doc);
@@ -355,7 +355,7 @@ namespace FinancialDiaryApi.Manager
 				currentvalue = (int)item[Constants.currentvalue],
 				returns = (double)item[Constants.returns],
 				profile = (string)item[Constants.profile],
-				createddate = (string)item[Constants.createddate],
+				createddate = Convert.ToDateTime(item[Constants.createddate]).ToString(Constants.ddMMMMyyyy),
 				id = Convert.ToString((ObjectId)item[Constants._id])
 			})
 				.ToList();
@@ -388,12 +388,13 @@ namespace FinancialDiaryApi.Manager
 			var outputData = new List<InvestmentReturns>();
 			foreach (var item in docs)
 			{
-				if (!combinedInvestment.ContainsKey((string)item[Constants.createddate]))
+				var keyDate = Convert.ToDateTime(item[Constants.createddate]).ToString(Constants.ddMMMMyyyy);
+				if (!combinedInvestment.ContainsKey(keyDate))
 				{
-					combinedInvestment.Add((string)item[Constants.createddate], 0);
+					combinedInvestment.Add(keyDate, 0);
 					var obj = new InvestmentReturns
 					{
-						createddate = (string)item[Constants.createddate],
+						createddate = Convert.ToDateTime(item[Constants.createddate]).ToString(Constants.ddMMMMyyyy),
 						investedamount = (int)item[Constants.investedamount],
 						currentvalue = (int)item[Constants.currentvalue]
 					};
@@ -401,11 +402,11 @@ namespace FinancialDiaryApi.Manager
 				}
 				else
 				{
-					foreach (var entry in outputData.Where(entry => entry.createddate.Equals((string)item[Constants.createddate])))
+					foreach (var entry in outputData.Where(entry => entry.createddate.Equals(Convert.ToDateTime(item[Constants.createddate]).ToString(Constants.ddMMMMyyyy))))
 					{
-						entry.investedamount += (int)item[Constants.investedamount];
-						entry.currentvalue += (int)item[Constants.currentvalue];
-						entry.returns = Math.Round(((double)(entry.currentvalue - entry.investedamount) / (double)entry.investedamount) * 100, 2);
+						entry.investedamount += (int) item[Constants.investedamount];
+						entry.currentvalue += (int) item[Constants.currentvalue];
+						entry.returns = Math.Round(((double) (entry.currentvalue - entry.investedamount) / (double) entry.investedamount) * 100, 2);
 					}
 				}
 			}
@@ -501,7 +502,7 @@ namespace FinancialDiaryApi.Manager
 		internal async Task<IEnumerable<DebtDetails>> GetDebtsDashBoardData()
 		{
 			var debtRecords = GetMongoCollection(Constants.Debt);
-			var latestDate = (string)debtRecords.Find(new BsonDocument())
+			var latestDate = (DateTime)debtRecords.Find(new BsonDocument())
 				.Sort(Builders<BsonDocument>.Sort.Descending(Constants.createddate)
 					.Descending(Constants.createddate))
 				.ToList().FirstOrDefault()?[Constants.createddate];
@@ -512,7 +513,7 @@ namespace FinancialDiaryApi.Manager
 			{
 				accountname = (string)item[Constants.accountname],
 				currentbalance = (int)item[Constants.currentBalance],
-				createddate = (string)item[Constants.createddate],
+				createddate = (DateTime)item[Constants.createddate],
 				id = Convert.ToString((ObjectId)item[Constants._id])
 			}).ToList();
 		}
@@ -520,7 +521,7 @@ namespace FinancialDiaryApi.Manager
 		internal async Task<int> RefreshDebtAndInvestmentDataForChart()
 		{
 			var debtInvestmentRecord = GetMongoCollection(Constants.DebtAndInvestment);
-			var latestDate = (string)debtInvestmentRecord.Find(new BsonDocument())
+			var latestDate = (DateTime)debtInvestmentRecord.Find(new BsonDocument())
 				.Sort(Builders<BsonDocument>.Sort.Descending(Constants.createddate)
 					.Descending(Constants.createddate))
 				.ToList().FirstOrDefault()?[Constants.createddate];
@@ -530,8 +531,8 @@ namespace FinancialDiaryApi.Manager
 			var docs = filter == null ? debtInvestmentRecord.Find(new BsonDocument()).ToList() : debtInvestmentRecord.Find(filter).ToList();
 			if (docs.Count > 0)
 			{
-				var lastEntry = (string)docs[0][Constants.createddate];
-				if (lastEntry.Contains((DateTime.Now.ToString(Constants.MMMM))))
+				var lastEntry = (DateTime)docs[0][Constants.createddate];
+				if (lastEntry.Month==DateTime.Now.Month)
 					return 0;
 			}
 
@@ -543,7 +544,7 @@ namespace FinancialDiaryApi.Manager
 			{
 				{Constants.totaldebt, cumulativeDebt},
 				{Constants.totalinvestments, cumulativeAsset},
-				{Constants.createddate, DateTime.Now.ToString(Constants.ddMMMMyyyy)}
+				{Constants.createddate, DateTime.Now}
 			};
 
 			await debtInvestmentRecord.InsertOneAsync(doc);

@@ -30,7 +30,7 @@ namespace FinancialDiaryApi.Model
         public const string contribution = "contribution";
         public const string type = "type";
         public const string interest = "interest";
-        public const string ddMMMMyyyy= "dd MMMM yyyy";
+        public const string ddMMMMyyyy= "dd-MMMM-yyyy";
         public const string MMMM = "MMMM";
         public const string Interest = "Interest";
         public const string Contribution = "Contribution";
