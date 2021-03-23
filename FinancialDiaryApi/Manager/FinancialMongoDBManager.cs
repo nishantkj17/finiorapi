@@ -506,7 +506,13 @@ namespace FinancialDiaryApi.Manager
 				.Sort(Builders<BsonDocument>.Sort.Descending(Constants.createddate)
 					.Descending(Constants.createddate))
 				.ToList().FirstOrDefault()?[Constants.createddate];
-			var filter = Builders<BsonDocument>.Filter.Eq(Constants.createddate, latestDate);
+
+			var start = new DateTime(latestDate.Year, latestDate.Month, latestDate.Day-1);
+			var end = new DateTime(latestDate.Year, latestDate.Month, latestDate.Day+1);
+
+			var filter = Builders<BsonDocument>.Filter.Gte(Constants.createddate, start) &
+			             Builders<BsonDocument>.Filter.Lte(Constants.createddate, end);
+			//var filter = Builders<BsonDocument>.Filter.Eq(Constants.createddate, latestDate);
 
 			var docs = filter == null ? debtRecords.Find(new BsonDocument()).ToList() : debtRecords.Find(filter).ToList();
 			return docs.Select(item => new DebtDetails
