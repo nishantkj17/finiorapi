@@ -502,44 +502,55 @@ namespace FinancialDiaryApi.Manager
 		internal async Task<IEnumerable<DebtDetails>> GetDebtsDashBoardData()
 		{
 			var debtRecords = GetMongoCollection(Constants.Debt);
-			var latestDate = (DateTime)debtRecords.Find(new BsonDocument())
+			var recordExist = debtRecords.Find(new BsonDocument()).ToList();
+			if (recordExist.Count <= 0) return null;
+			
+			var latestDate = (DateTime) debtRecords.Find(new BsonDocument())
 				.Sort(Builders<BsonDocument>.Sort.Descending(Constants.createddate)
 					.Descending(Constants.createddate))
 				.ToList().FirstOrDefault()?[Constants.createddate];
 
-			var start = new DateTime(latestDate.Year, latestDate.Month, latestDate.Day-1);
-			var end = new DateTime(latestDate.Year, latestDate.Month, latestDate.Day+1);
+			var start = new DateTime(latestDate.Year, latestDate.Month, latestDate.Day - 1);
+			var end = new DateTime(latestDate.Year, latestDate.Month, latestDate.Day + 1);
 
 			var filter = Builders<BsonDocument>.Filter.Gte(Constants.createddate, start) &
 			             Builders<BsonDocument>.Filter.Lte(Constants.createddate, end);
 			//var filter = Builders<BsonDocument>.Filter.Eq(Constants.createddate, latestDate);
 
-			var docs = filter == null ? debtRecords.Find(new BsonDocument()).ToList() : debtRecords.Find(filter).ToList();
+			var docs = filter == null
+				? debtRecords.Find(new BsonDocument()).ToList()
+				: debtRecords.Find(filter).ToList();
 			return docs.Select(item => new DebtDetails
 			{
-				accountname = (string)item[Constants.accountname],
-				currentbalance = (int)item[Constants.currentBalance],
-				createddate = (DateTime)item[Constants.createddate],
-				id = Convert.ToString((ObjectId)item[Constants._id])
+				accountname = (string) item[Constants.accountname],
+				currentbalance = (int) item[Constants.currentBalance],
+				createddate = (DateTime) item[Constants.createddate],
+				id = Convert.ToString((ObjectId) item[Constants._id])
 			}).ToList();
 		}
 
 		internal async Task<int> RefreshDebtAndInvestmentDataForChart()
 		{
 			var debtInvestmentRecord = GetMongoCollection(Constants.DebtAndInvestment);
-			var latestDate = (DateTime)debtInvestmentRecord.Find(new BsonDocument())
-				.Sort(Builders<BsonDocument>.Sort.Descending(Constants.createddate)
-					.Descending(Constants.createddate))
-				.ToList().FirstOrDefault()?[Constants.createddate];
-
-			var filter = Builders<BsonDocument>.Filter.Eq(Constants.createddate, latestDate);
-
-			var docs = filter == null ? debtInvestmentRecord.Find(new BsonDocument()).ToList() : debtInvestmentRecord.Find(filter).ToList();
-			if (docs.Count > 0)
+			var recordExist = debtInvestmentRecord.Find(new BsonDocument()).ToList();
+			if (recordExist.Count > 0)
 			{
-				var lastEntry = (DateTime)docs[0][Constants.createddate];
-				if (lastEntry.Month==DateTime.Now.Month)
-					return 0;
+				var latestDate = (DateTime) debtInvestmentRecord.Find(new BsonDocument())
+					.Sort(Builders<BsonDocument>.Sort.Descending(Constants.createddate)
+						.Descending(Constants.createddate))
+					.ToList().FirstOrDefault()?[Constants.createddate];
+
+				var filter = Builders<BsonDocument>.Filter.Eq(Constants.createddate, latestDate);
+
+				var docs = filter == null
+					? debtInvestmentRecord.Find(new BsonDocument()).ToList()
+					: debtInvestmentRecord.Find(filter).ToList();
+				if (docs.Count > 0)
+				{
+					var lastEntry = (DateTime) docs[0][Constants.createddate];
+					if (lastEntry.Month == DateTime.Now.Month)
+						return 0;
+				}
 			}
 
 			var assetData = GetAssetsDashBoardData().Result;

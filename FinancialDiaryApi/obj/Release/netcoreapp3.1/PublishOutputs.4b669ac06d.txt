@@ -2,10 +2,10 @@ C:\finiorapi\FinancialDiaryApi\obj\Release\netcoreapp3.1\PubTmp\Out\FinancialDia
 C:\finiorapi\FinancialDiaryApi\obj\Release\netcoreapp3.1\PubTmp\Out\web.config
 C:\finiorapi\FinancialDiaryApi\obj\Release\netcoreapp3.1\PubTmp\Out\appsettings.Development.json
 C:\finiorapi\FinancialDiaryApi\obj\Release\netcoreapp3.1\PubTmp\Out\appsettings.json
-C:\finiorapi\FinancialDiaryApi\obj\Release\netcoreapp3.1\PubTmp\Out\FinancialDiaryApi.deps.json
-C:\finiorapi\FinancialDiaryApi\obj\Release\netcoreapp3.1\PubTmp\Out\FinancialDiaryApi.runtimeconfig.json
 C:\finiorapi\FinancialDiaryApi\obj\Release\netcoreapp3.1\PubTmp\Out\package-lock.json
 C:\finiorapi\FinancialDiaryApi\obj\Release\netcoreapp3.1\PubTmp\Out\FinancialDiaryApi.dll
+C:\finiorapi\FinancialDiaryApi\obj\Release\netcoreapp3.1\PubTmp\Out\FinancialDiaryApi.deps.json
+C:\finiorapi\FinancialDiaryApi\obj\Release\netcoreapp3.1\PubTmp\Out\FinancialDiaryApi.runtimeconfig.json
 C:\finiorapi\FinancialDiaryApi\obj\Release\netcoreapp3.1\PubTmp\Out\FinancialDiaryApi.pdb
 C:\finiorapi\FinancialDiaryApi\obj\Release\netcoreapp3.1\PubTmp\Out\DnsClient.dll
 C:\finiorapi\FinancialDiaryApi\obj\Release\netcoreapp3.1\PubTmp\Out\Microsoft.OpenApi.dll
