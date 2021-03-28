@@ -57,22 +57,16 @@ namespace FinancialDiaryApi.Manager
 		{
 			var investmentRecord = GetMongoCollection(Constants.Diary);
 			var docs = investmentRecord.Find(new BsonDocument()).ToList();
-			var outputData = new List<InvestmentDetails>();
 
-			foreach (var item in docs)
-			{
-				var obj = new InvestmentDetails
+			return docs.Select(item => new InvestmentDetails
 				{
-					fundName = (string)item[Constants.fundName],
-					date = (string)item[Constants.date],
-					denomination = (string)item[Constants.amount],
-					profile = (string)item[Constants.profile],
-					id = Convert.ToString((ObjectId)item[Constants._id])
-				};
-
-				outputData.Add(obj);
-			}
-			return outputData;
+					fundName = (string) item[Constants.fundName],
+					date = (string) item[Constants.date],
+					denomination = (string) item[Constants.amount],
+					profile = (string) item[Constants.profile],
+					id = Convert.ToString((ObjectId) item[Constants._id])
+				})
+				.ToList();
 		}
 
 		public async Task<IEnumerable<InvestmentDetails>> GetFilteredInvestmentDetails(string date, string profile)
@@ -186,7 +180,7 @@ namespace FinancialDiaryApi.Manager
 			foreach (var item in docs)
 			{
 				lineChartLabelsList.AddRange(new string[] { "" });
-				if (Convert.ToString(item[Constants.type]).Equals("EPFO"))
+				if (Convert.ToString(item[Constants.type]).Equals(Constants.EPFO))
 				{
 					if (Convert.ToString(item[Constants.profile]).Contains("Nishant"))
 					{
@@ -204,8 +198,6 @@ namespace FinancialDiaryApi.Manager
 				counter++;
 			}
 			epfoPrimaryBalance = epfoPrimaryBalance.Where(x =>  x!=0).ToArray();
-			epfoSecondaryBalance = epfoSecondaryBalance.Where(x =>  x != 0).ToArray();
-			ppfBalance = ppfBalance.Where(x =>  x != 0).ToArray();
 			if (lineChartLabelsList.Count > (lineChartLabelsList.Count - epfoPrimaryBalance.Length) / 2)
 			{
 				lineChartLabelsList.RemoveRange((lineChartLabelsList.Count - epfoPrimaryBalance.Length) / 2, (lineChartLabelsList.Count- epfoPrimaryBalance.Length));
@@ -214,10 +206,9 @@ namespace FinancialDiaryApi.Manager
 			var chartData = new List<Returns>
 			{
 				new Returns { Label = Constants.NCurrentvalue, Data = epfoSecondaryBalance,  pointRadius=0 },
-				new Returns { Label = Constants.RCurrentValue, Data = epfoPrimaryBalance, pointRadius=0 },
-				new Returns { Label = Constants.ppf, Data = ppfBalance, pointRadius=0 }
+				new Returns { Label = Constants.RCurrentValue, Data = epfoPrimaryBalance.Where(x =>  x != 0).ToArray(), pointRadius=0 },
+				new Returns { Label = Constants.ppf, Data = ppfBalance.Where(x =>  x != 0).ToArray(), pointRadius=0 }
 			};
-
 
 			return new InvestmentReturnDataForChart { InvestmentReturnChart = chartData, ChartLabels = lineChartLabelsList.ToArray() };
 		}
@@ -257,15 +248,15 @@ namespace FinancialDiaryApi.Manager
 		internal async Task<InvestmentReturnDataForChart> GetIndividualInvestmentReturnDataForChart()
 		{
 			var investmentReturnData = GetInvestmentReturnDetails();
-			var count = investmentReturnData.Result.Count() / 2;
-			var ranjanaInvestedAmountData = new double[count];
-			var ranjanaCurrentValueData = new double[count];
-			var nishantInvestedAmountData = new double[count];
-			var nishantCurrentValueData = new double[count];
-			List<string> lineChartLabelsList = new List<string>();
-			int counterNishant = 0;
-			int counterRanjana = 0;
-			for (int i = 0; i < count; i++)
+			var count = investmentReturnData.Result.Count();
+			var primaryInvestedAmountData = new double[count];
+			var primaryCurrentValueData = new double[count];
+			var secondaryInvestedAmountData = new double[count];
+			var secondaryCurrentValueData = new double[count];
+			var lineChartLabelsList = new List<string>();
+			var secondaryCounter = 0;
+			var primaryCounter = 0;
+			for (var i = 0; i < count; i++)
 			{
 				lineChartLabelsList.AddRange(new string[] { "" });
 			}
@@ -274,23 +265,30 @@ namespace FinancialDiaryApi.Manager
 				if (item.profile == Constants.RanjanaJha)
 				{
 
-					ranjanaInvestedAmountData[counterRanjana] = item.investedamount;
-					ranjanaCurrentValueData[counterRanjana] = item.currentvalue;
-					counterRanjana++;
+					primaryInvestedAmountData[primaryCounter] = item.investedamount;
+					primaryCurrentValueData[primaryCounter] = item.currentvalue;
+					primaryCounter++;
 				}
 				else
 				{
-					nishantInvestedAmountData[counterNishant] = item.investedamount;
-					nishantCurrentValueData[counterNishant] = item.currentvalue;
-					counterNishant++;
+					secondaryInvestedAmountData[secondaryCounter] = item.investedamount;
+					secondaryCurrentValueData[secondaryCounter] = item.currentvalue;
+					secondaryCounter++;
 				}
+			}
+
+			primaryInvestedAmountData = primaryInvestedAmountData.Where(x => x != 0).ToArray();
+
+			if (lineChartLabelsList.Count > (lineChartLabelsList.Count - primaryInvestedAmountData.Length) / 2)
+			{
+				lineChartLabelsList.RemoveRange((lineChartLabelsList.Count - primaryInvestedAmountData.Length) / 2, (lineChartLabelsList.Count - primaryInvestedAmountData.Length));
 			}
 			var chartData = new List<Returns>
 			{
-				new Returns { Label = Constants.RInvestedAmount, Data = ranjanaInvestedAmountData, pointRadius=0 },
-				new Returns { Label = Constants.RCurrentValue, Data = ranjanaCurrentValueData, pointRadius=0 },
-				new Returns { Label = Constants.NInvestedAmount, Data = nishantInvestedAmountData, pointRadius=0 },
-				new Returns { Label = Constants.NCurrentvalue, Data = nishantCurrentValueData, pointRadius=0 }
+				new Returns { Label = Constants.RInvestedAmount, Data = primaryInvestedAmountData, pointRadius=0 },
+				new Returns { Label = Constants.RCurrentValue, Data = primaryCurrentValueData.Where(x => x != 0).ToArray(), pointRadius=0 },
+				new Returns { Label = Constants.NInvestedAmount, Data = secondaryInvestedAmountData.Where(x => x != 0).ToArray(), pointRadius=0 },
+				new Returns { Label = Constants.NCurrentvalue, Data = secondaryCurrentValueData.Where(x => x != 0).ToArray(), pointRadius=0 }
 			};
 
 			return new InvestmentReturnDataForChart { InvestmentReturnChart = chartData, ChartLabels = lineChartLabelsList.ToArray() };
@@ -515,7 +513,6 @@ namespace FinancialDiaryApi.Manager
 
 			var filter = Builders<BsonDocument>.Filter.Gte(Constants.createddate, start) &
 			             Builders<BsonDocument>.Filter.Lte(Constants.createddate, end);
-			//var filter = Builders<BsonDocument>.Filter.Eq(Constants.createddate, latestDate);
 
 			var docs = filter == null
 				? debtRecords.Find(new BsonDocument()).ToList()
