@@ -205,8 +205,8 @@ namespace FinancialDiaryApi.Manager
 
 			var chartData = new List<Returns>
 			{
-				new Returns { Label = Constants.NCurrentvalue, Data = epfoSecondaryBalance,  pointRadius=0 },
-				new Returns { Label = Constants.RCurrentValue, Data = epfoPrimaryBalance.Where(x =>  x != 0).ToArray(), pointRadius=0 },
+				new Returns { Label = Constants.NCurrentvalue, Data = epfoSecondaryBalance.Where(x =>  x != 0).ToArray(),  pointRadius=0 },
+				new Returns { Label = Constants.RCurrentValue, Data = epfoPrimaryBalance, pointRadius=0 },
 				new Returns { Label = Constants.ppf, Data = ppfBalance.Where(x =>  x != 0).ToArray(), pointRadius=0 }
 			};
 
