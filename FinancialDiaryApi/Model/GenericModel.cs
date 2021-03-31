@@ -62,6 +62,7 @@ namespace FinancialDiaryWeb.Model
 		public string cardclass { get; set; }
 		public string investmenttype { get; set; }
 		public double currentvalue { get; set; }
+		public bool increased { get; set; }
 	}
 	public class DebtDetails
 	{

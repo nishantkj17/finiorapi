@@ -459,8 +459,13 @@ namespace FinancialDiaryApi.Manager
 		{
 			double epfoData = 0;
 			double ppfData = 0;
-			double mutualFundData = GetCombinedMutualFundReturnDetails().Result.Last().currentvalue;
-			double equityData = (int)GetInvestmentReturnData(Constants.Equity, Constants.ByLatestDate).FirstOrDefault()?[Constants.currentvalue];
+			double epfoDataPrevious = 0;
+			double ppfDataPrevious = 0;
+			var mutualFundDashBoardData = GetCombinedMutualFundReturnDetails().Result.Reverse().Take(2).ToList();
+
+			var equityDashBoardData =
+				GetInvestmentReturnData(Constants.Equity, Constants.ByLatestDate).Take(2).ToList();
+
 
 			foreach (var item in GetInvestmentReturnData(Constants.EPFO, Constants.ByLatestDate).GetRange(0,3))
 			{
@@ -474,23 +479,37 @@ namespace FinancialDiaryApi.Manager
 				}
 			}
 
+			foreach (var item in GetInvestmentReturnData(Constants.EPFO, Constants.ByLatestDate).GetRange(3, 3))
+			{
+				if (((string)item[Constants.type]).Equals(Constants.EPFO))
+				{
+					epfoDataPrevious += (double) item[Constants.epfoPrimaryBalance];
+				}
+				else
+				{
+					ppfDataPrevious += (double)item[Constants.ppfBalance];
+				}
+			}
+
 			var outputData = new List<DashboardAssetDetails>
 			{
 				new DashboardAssetDetails
 				{
-					cardclass = "bg-primary", investmenttype = Constants.mutualfund, currentvalue = mutualFundData
+					cardclass = "bg-primary", investmenttype = Constants.mutualfund, currentvalue = mutualFundDashBoardData.First().currentvalue, 
+					increased = (mutualFundDashBoardData.First().returns > mutualFundDashBoardData.Last().returns)
 				},
 				new DashboardAssetDetails
 				{
-					cardclass = "bg-success", investmenttype = Constants.Equity, currentvalue = equityData
+					cardclass = "bg-success", investmenttype = Constants.Equity, currentvalue = (int)equityDashBoardData.FirstOrDefault()?[Constants.currentvalue], 
+					increased = (equityDashBoardData.First()[Constants.returns] > equityDashBoardData.Last()[Constants.returns])
 				},
 				new DashboardAssetDetails
 				{
-					cardclass = "bg-warning", investmenttype = Constants.EPFO, currentvalue = epfoData
+					cardclass = "bg-warning", investmenttype = Constants.EPFO, currentvalue = epfoData, increased = (epfoData > epfoDataPrevious)
 				},
 				new DashboardAssetDetails
 				{
-					cardclass = "bg-primary", investmenttype = Constants.ppf, currentvalue = ppfData
+					cardclass = "bg-primary", investmenttype = Constants.ppf, currentvalue = ppfData, increased = (ppfData > ppfDataPrevious)
 				}
 			};
 
