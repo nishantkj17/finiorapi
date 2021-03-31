@@ -59,13 +59,13 @@ namespace FinancialDiaryApi.Manager
 			var docs = investmentRecord.Find(new BsonDocument()).ToList();
 
 			return docs.Select(item => new InvestmentDetails
-				{
-					fundName = (string) item[Constants.fundName],
-					date = (string) item[Constants.date],
-					denomination = (string) item[Constants.amount],
-					profile = (string) item[Constants.profile],
-					id = Convert.ToString((ObjectId) item[Constants._id])
-				})
+			{
+				fundName = (string)item[Constants.fundName],
+				date = (string)item[Constants.date],
+				denomination = (string)item[Constants.amount],
+				profile = (string)item[Constants.profile],
+				id = Convert.ToString((ObjectId)item[Constants._id])
+			})
 				.ToList();
 		}
 
@@ -197,10 +197,10 @@ namespace FinancialDiaryApi.Manager
 				}
 				counter++;
 			}
-			epfoPrimaryBalance = epfoPrimaryBalance.Where(x =>  x!=0).ToArray();
+			epfoPrimaryBalance = epfoPrimaryBalance.Where(x => x != 0).ToArray();
 			if (lineChartLabelsList.Count > (lineChartLabelsList.Count - epfoPrimaryBalance.Length) / 2)
 			{
-				lineChartLabelsList.RemoveRange((lineChartLabelsList.Count - epfoPrimaryBalance.Length) / 2, (lineChartLabelsList.Count- epfoPrimaryBalance.Length));
+				lineChartLabelsList.RemoveRange((lineChartLabelsList.Count - epfoPrimaryBalance.Length) / 2, (lineChartLabelsList.Count - epfoPrimaryBalance.Length));
 			}
 
 			var chartData = new List<Returns>
@@ -213,7 +213,7 @@ namespace FinancialDiaryApi.Manager
 			return new InvestmentReturnDataForChart { InvestmentReturnChart = chartData, ChartLabels = lineChartLabelsList.ToArray() };
 		}
 
-		internal async Task<int> SaveProvidentFundDetails(double primaryBalance,double ppfBalance, string type, string profile)
+		internal async Task<int> SaveProvidentFundDetails(double primaryBalance, double ppfBalance, string type, string profile)
 		{
 			var investmentRecord = GetMongoCollection(Constants.EPFO);
 			var doc = new BsonDocument
@@ -402,9 +402,9 @@ namespace FinancialDiaryApi.Manager
 				{
 					foreach (var entry in outputData.Where(entry => entry.createddate.Equals(Convert.ToDateTime(item[Constants.createddate]).ToString(Constants.ddMMMMyyyy))))
 					{
-						entry.investedamount += (int) item[Constants.investedamount];
-						entry.currentvalue += (int) item[Constants.currentvalue];
-						entry.returns = Math.Round(((double) (entry.currentvalue - entry.investedamount) / (double) entry.investedamount) * 100, 2);
+						entry.investedamount += (int)item[Constants.investedamount];
+						entry.currentvalue += (int)item[Constants.currentvalue];
+						entry.returns = Math.Round(((double)(entry.currentvalue - entry.investedamount) / (double)entry.investedamount) * 100, 2);
 					}
 				}
 			}
@@ -467,7 +467,7 @@ namespace FinancialDiaryApi.Manager
 				GetInvestmentReturnData(Constants.Equity, Constants.ByLatestDate).Take(2).ToList();
 
 
-			foreach (var item in GetInvestmentReturnData(Constants.EPFO, Constants.ByLatestDate).GetRange(0,3))
+			foreach (var item in GetInvestmentReturnData(Constants.EPFO, Constants.ByLatestDate).GetRange(0, 3))
 			{
 				if (((string)item[Constants.type]).Equals(Constants.EPFO))
 				{
@@ -483,7 +483,7 @@ namespace FinancialDiaryApi.Manager
 			{
 				if (((string)item[Constants.type]).Equals(Constants.EPFO))
 				{
-					epfoDataPrevious += (double) item[Constants.epfoPrimaryBalance];
+					epfoDataPrevious += (double)item[Constants.epfoPrimaryBalance];
 				}
 				else
 				{
@@ -495,12 +495,12 @@ namespace FinancialDiaryApi.Manager
 			{
 				new DashboardAssetDetails
 				{
-					cardclass = "bg-primary", investmenttype = Constants.mutualfund, currentvalue = mutualFundDashBoardData.First().currentvalue, 
+					cardclass = "bg-primary", investmenttype = Constants.mutualfund, currentvalue = mutualFundDashBoardData.First().currentvalue,
 					increased = (mutualFundDashBoardData.First().returns > mutualFundDashBoardData.Last().returns)
 				},
 				new DashboardAssetDetails
 				{
-					cardclass = "bg-success", investmenttype = Constants.Equity, currentvalue = (int)equityDashBoardData.FirstOrDefault()?[Constants.currentvalue], 
+					cardclass = "bg-success", investmenttype = Constants.Equity, currentvalue = (int)equityDashBoardData.FirstOrDefault()?[Constants.currentvalue],
 					increased = (equityDashBoardData.First()[Constants.returns] > equityDashBoardData.Last()[Constants.returns])
 				},
 				new DashboardAssetDetails
@@ -521,8 +521,8 @@ namespace FinancialDiaryApi.Manager
 			var debtRecords = GetMongoCollection(Constants.Debt);
 			var recordExist = debtRecords.Find(new BsonDocument()).ToList();
 			if (recordExist.Count <= 0) return null;
-			
-			var latestDate = (DateTime) debtRecords.Find(new BsonDocument())
+
+			var latestDate = (DateTime)debtRecords.Find(new BsonDocument())
 				.Sort(Builders<BsonDocument>.Sort.Descending(Constants.createddate)
 					.Descending(Constants.createddate))
 				.ToList().FirstOrDefault()?[Constants.createddate];
@@ -531,17 +531,18 @@ namespace FinancialDiaryApi.Manager
 			var end = new DateTime(latestDate.Year, latestDate.Month, latestDate.Day + 1);
 
 			var filter = Builders<BsonDocument>.Filter.Gte(Constants.createddate, start) &
-			             Builders<BsonDocument>.Filter.Lte(Constants.createddate, end);
+						 Builders<BsonDocument>.Filter.Lte(Constants.createddate, end) &
+						 Builders<BsonDocument>.Filter.Gte(Constants.currentBalance, 0);
 
 			var docs = filter == null
 				? debtRecords.Find(new BsonDocument()).ToList()
 				: debtRecords.Find(filter).ToList();
 			return docs.Select(item => new DebtDetails
 			{
-				accountname = (string) item[Constants.accountname],
-				currentbalance = (int) item[Constants.currentBalance],
-				createddate = (DateTime) item[Constants.createddate],
-				id = Convert.ToString((ObjectId) item[Constants._id])
+				accountname = (string)item[Constants.accountname],
+				currentbalance = (int)item[Constants.currentBalance],
+				createddate = (DateTime)item[Constants.createddate],
+				id = Convert.ToString((ObjectId)item[Constants._id])
 			}).ToList();
 		}
 
@@ -551,7 +552,7 @@ namespace FinancialDiaryApi.Manager
 			var recordExist = debtInvestmentRecord.Find(new BsonDocument()).ToList();
 			if (recordExist.Count > 0)
 			{
-				var latestDate = (DateTime) debtInvestmentRecord.Find(new BsonDocument())
+				var latestDate = (DateTime)debtInvestmentRecord.Find(new BsonDocument())
 					.Sort(Builders<BsonDocument>.Sort.Descending(Constants.createddate)
 						.Descending(Constants.createddate))
 					.ToList().FirstOrDefault()?[Constants.createddate];
@@ -563,7 +564,7 @@ namespace FinancialDiaryApi.Manager
 					: debtInvestmentRecord.Find(filter).ToList();
 				if (docs.Count > 0)
 				{
-					var lastEntry = (DateTime) docs[0][Constants.createddate];
+					var lastEntry = (DateTime)docs[0][Constants.createddate];
 					if (lastEntry.Month == DateTime.Now.Month)
 						return 0;
 				}
