@@ -67,7 +67,7 @@ namespace FinancialDiaryWeb.Controllers
 		public async Task<ActionResult> GetCombinedInvestmentReturnDetails()
 		{
 			var obj = new FinancialMongoDbManager();
-			return Ok(await obj.GetCombinedMutualFundReturnDetails());
+			return Ok(await obj.GetCombinedMutualFundReturnDetails(null));
 		}
 
 		[HttpGet]

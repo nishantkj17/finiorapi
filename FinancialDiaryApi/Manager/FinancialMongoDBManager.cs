@@ -119,7 +119,7 @@ namespace FinancialDiaryApi.Manager
 
 		internal async Task<InvestmentReturnDataForChart> GetInvestmentReturnDataForChart()
 		{
-			var investmentReturnData = GetCombinedMutualFundReturnDetails();
+			var investmentReturnData = GetCombinedMutualFundReturnDetails(null);
 			var count = investmentReturnData.Result.Count();
 			var investedAmountData = new double[count];
 			var currentValueData = new double[count];
@@ -378,10 +378,29 @@ namespace FinancialDiaryApi.Manager
 			}
 			return data;
 		}
-
-		internal async Task<IEnumerable<InvestmentReturns>> GetCombinedMutualFundReturnDetails()
+		private List<BsonDocument> GetTopTwoInvestmentReturnData(string collection, string order, int limit)
 		{
-			var docs = GetInvestmentReturnData(Constants.Sum, Constants.ByOldDate);
+			var investmentRecord = GetMongoCollection(collection);
+			List<BsonDocument> data;
+			if (order.Equals(Constants.ByLatestDate))
+			{
+				data = investmentRecord.Find(new BsonDocument())
+					.Sort(Builders<BsonDocument>.Sort.Descending(Constants.createddate)
+						.Descending(Constants.createddate)).Limit(limit)
+					.ToList();
+			}
+			else
+			{
+				data = investmentRecord.Find(new BsonDocument())
+					.Sort(Builders<BsonDocument>.Sort.Ascending(Constants.createddate)
+						.Ascending(Constants.createddate)).Limit(limit)
+					.ToList();
+			}
+			return data;
+		}
+		internal async Task<IEnumerable<InvestmentReturns>> GetCombinedMutualFundReturnDetails(List<BsonDocument> docs)
+		{
+			docs ??= GetInvestmentReturnData(Constants.Sum, Constants.ByOldDate);
 			var combinedInvestment = new Dictionary<string, int>();
 			var outputData = new List<InvestmentReturns>();
 			foreach (var item in docs)
@@ -461,13 +480,15 @@ namespace FinancialDiaryApi.Manager
 			double ppfData = 0;
 			double epfoDataPrevious = 0;
 			double ppfDataPrevious = 0;
-			var mutualFundDashBoardData = GetCombinedMutualFundReturnDetails().Result.Reverse().Take(2).ToList();
+			var docs=  GetTopTwoInvestmentReturnData(Constants.Sum, Constants.ByLatestDate, 4);
+			var mutualFundDashBoardData = GetCombinedMutualFundReturnDetails(docs).Result.ToList();
 
 			var equityDashBoardData =
-				GetInvestmentReturnData(Constants.Equity, Constants.ByLatestDate).Take(2).ToList();
+				GetTopTwoInvestmentReturnData(Constants.Equity, Constants.ByLatestDate, 2).ToList();
 
+			var pfDocuments= GetTopTwoInvestmentReturnData(Constants.EPFO, Constants.ByLatestDate, 6);
 
-			foreach (var item in GetInvestmentReturnData(Constants.EPFO, Constants.ByLatestDate).GetRange(0, 3))
+			foreach (var item in pfDocuments.GetRange(0, 3))
 			{
 				if (((string)item[Constants.type]).Equals(Constants.EPFO))
 				{
@@ -479,7 +500,7 @@ namespace FinancialDiaryApi.Manager
 				}
 			}
 
-			foreach (var item in GetInvestmentReturnData(Constants.EPFO, Constants.ByLatestDate).GetRange(3, 3))
+			foreach (var item in pfDocuments.GetRange(3, 3))
 			{
 				if (((string)item[Constants.type]).Equals(Constants.EPFO))
 				{
