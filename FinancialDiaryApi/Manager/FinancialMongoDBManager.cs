@@ -553,11 +553,9 @@ namespace FinancialDiaryApi.Manager
 
 			var filter = Builders<BsonDocument>.Filter.Gte(Constants.createddate, start) &
 						 Builders<BsonDocument>.Filter.Lte(Constants.createddate, end) &
-						 Builders<BsonDocument>.Filter.Gte(Constants.currentBalance, 0);
+						 Builders<BsonDocument>.Filter.Gt(Constants.currentBalance, 0);
 
-			var docs = filter == null
-				? debtRecords.Find(new BsonDocument()).ToList()
-				: debtRecords.Find(filter).ToList();
+			var docs = debtRecords.Find(filter).ToList();
 			return docs.Select(item => new DebtDetails
 			{
 				accountname = (string)item[Constants.accountname],
