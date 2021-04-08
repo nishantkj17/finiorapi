@@ -16,14 +16,22 @@ namespace FinancialDiaryApi.Manager
 	public class FinancialMongoDbManager
 	{
 		private MongoClient _dbClient;
+		private MongoClient _dbClientCloud;
 		public FinancialMongoDbManager()
 		{
 			_dbClient = new MongoClient("mongodb://localhost:27017/?readPreference=primary&appname=MongoDB%20Compass&ssl=false");
+			_dbClientCloud =new MongoClient("mongodb+srv://admin:admin@cluster0.k7a1s.mongodb.net/myFirstDatabase?retryWrites=true&w=majority");
 		}
 
 		private IMongoCollection<BsonDocument> GetMongoCollection(string collectionName)
 		{
-			IMongoDatabase db = _dbClient.GetDatabase(Constants.Financials);
+			//IMongoDatabase db = _dbClient.GetDatabase(Constants.Financials);
+			IMongoDatabase db = _dbClientCloud.GetDatabase(Constants.Financials);
+			return db.GetCollection<BsonDocument>(collectionName);
+		}
+		private IMongoCollection<BsonDocument> GetMongoCollectionCloud(string collectionName)
+		{
+			IMongoDatabase db = _dbClientCloud.GetDatabase(Constants.Financials);
 			return db.GetCollection<BsonDocument>(collectionName);
 		}
 		public async Task<int> AddInvestments(string fundName, string date, string amount, string profile)
@@ -240,7 +248,7 @@ namespace FinancialDiaryApi.Manager
 				{Constants.returns, Math.Round(returns, 2)},
 				{Constants.createddate, DateTime.Now }
 			};
-			CollectionBackup();
+			//CollectionBackup();
 			await investmentRecord.InsertOneAsync(doc);
 			return 0;
 		}
@@ -314,7 +322,8 @@ namespace FinancialDiaryApi.Manager
 				new Returns { Label = Constants.Debt, Data = debtData,  pointRadius=2 },
 				new Returns { Label = Constants.SavingsInvestment, Data = investedAmountData, pointRadius=2 }
 			};
-
+			//CollectionBackup();
+			//ExportjsonToMongo();
 			return new InvestmentReturnDataForChart { InvestmentReturnChart = chartData, ChartLabels = lineChartLabelsList.ToArray() };
 		}
 
@@ -637,6 +646,32 @@ namespace FinancialDiaryApi.Manager
 				}
 			}
 
+		}
+
+		private async void ExportjsonToMongo()
+		{
+			string[] filePaths = {"Sum", "Debt", "Diary", "DebtAccounts", "DebtAndInvestment", "EPFO", "Equity", "InvestmentAccounts" }; ;
+
+			foreach (var item in filePaths)
+			{
+				
+				IMongoCollection<BsonDocument> collection= GetMongoCollectionCloud(item); // initialize to the collection to write to.
+				var inputFile = Constants.outputPath + item + ".json";
+				using (var streamReader = new StreamReader(inputFile))
+				{
+					string line;
+					while ((line = await streamReader.ReadLineAsync()) != null)
+					{
+						using (var jsonReader = new JsonReader(line))
+						{
+							var context = BsonDeserializationContext.CreateRoot(jsonReader);
+							var document = collection.DocumentSerializer.Deserialize(context);
+							await collection.InsertOneAsync(document);
+						}
+					}
+				}
+			}
+		
 		}
 	}
 }

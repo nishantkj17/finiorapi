@@ -1,0 +1,4 @@
+ applications:
+ - name: finiorapi
+   random-route: true
+   memory: 256M
