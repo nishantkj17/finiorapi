@@ -19,12 +19,21 @@ namespace FinancialDiaryApi
 		{
 			Configuration = configuration;
 		}
-
+		public static string ConnectionString
+		{
+			get;
+			private set;
+		}
 		public IConfiguration Configuration { get; }
 
 		// This method gets called by the runtime. Use this method to add services to the container.
 		public void ConfigureServices(IServiceCollection services)
 		{
+			var builder = Configuration.GetConnectionString("FinDB");
+
+			var password = Configuration["admin"];
+			ConnectionString=builder.Replace("PasswordToReplace", password);
+
 			services.AddCors(c =>
 			{
 				c.AddPolicy(name: "AllowSpecificOrigins", options => options.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());

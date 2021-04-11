@@ -179,6 +179,15 @@ namespace FinancialDiaryWeb.Controllers
 			var obj = new FinancialMongoDbManager();
 			return Ok(await obj.GetDebtAccountName(user));
 		}
+
+		[HttpGet]
+		[Route("getinvestmentaccountname")]
+		public async Task<ActionResult> GetInvestmentAccountName(string user)
+		{
+			var obj = new FinancialMongoDbManager();
+			return Ok(await obj.GetInvestmentAccountName(user));
+		}
+
 		[HttpGet]
 		[Route("getdebtsdashboarddata")]
 		public async Task<ActionResult> GetDebtsDashBoardData(string user)

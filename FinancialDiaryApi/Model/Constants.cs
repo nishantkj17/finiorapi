@@ -55,5 +55,6 @@ namespace FinancialDiaryApi.Model
         public const string epfoSecondaryBalance = "epfoSecondaryBalance";
         public const string ppfBalance = "ppfBalance";
         public const string user = "user";
+        public const string InvestmentAccounts = "InvestmentAccounts";
     }
 }

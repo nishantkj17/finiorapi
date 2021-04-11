@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using FinancialDiaryApi.Model;
 using FinancialDiaryWeb.Model;
+using Microsoft.Extensions.Configuration;
 using MongoDB.Bson;
 using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization;
@@ -15,25 +16,23 @@ namespace FinancialDiaryApi.Manager
 {
 	public class FinancialMongoDbManager
 	{
-		private MongoClient _dbClient;
 		private MongoClient _dbClientCloud;
+		public IConfiguration Configuration { get; }
 		public FinancialMongoDbManager()
 		{
-			_dbClient = new MongoClient("mongodb://localhost:27017/?readPreference=primary&appname=MongoDB%20Compass&ssl=false");
-			_dbClientCloud = new MongoClient("mongodb+srv://admin:admin@cluster0.k7a1s.mongodb.net/myFirstDatabase?retryWrites=true&w=majority");
+			var cn = GetConnectionString();
+			_dbClientCloud = new MongoClient(GetConnectionString());
 		}
-
+		public static string GetConnectionString()
+		{
+			return Startup.ConnectionString;
+		}
 		private IMongoCollection<BsonDocument> GetMongoCollection(string collectionName)
 		{
-			//IMongoDatabase db = _dbClient.GetDatabase(Constants.Financials);
 			IMongoDatabase db = _dbClientCloud.GetDatabase(Constants.Financials);
 			return db.GetCollection<BsonDocument>(collectionName);
 		}
-		private IMongoCollection<BsonDocument> GetMongoCollectionCloud(string collectionName)
-		{
-			IMongoDatabase db = _dbClientCloud.GetDatabase(Constants.Financials);
-			return db.GetCollection<BsonDocument>(collectionName);
-		}
+
 		public async Task<int> AddInvestments(string fundName, string date, string amount, string profile, string user)
 		{
 			var investmentRecord = GetMongoCollection(Constants.Diary);
@@ -639,10 +638,17 @@ namespace FinancialDiaryApi.Manager
 			return debtAccounts.Select(item => (string)item[Constants.name]).ToList();
 		}
 
+		internal async Task<List<string>> GetInvestmentAccountName(string user)
+		{
+			var filter = Builders<BsonDocument>.Filter.Eq(Constants.user, user);
+			var debtAccounts = GetMongoCollection(Constants.InvestmentAccounts).Find(filter).ToList();
+			return debtAccounts.Select(item => (string)item[Constants.name]).ToList();
+		}
+
 		private async void CollectionBackup()
 		{
 			var outputFileName = Constants.outputPath; // initialize to the output file
-			var db = _dbClient.GetDatabase(Constants.Financials);
+			var db = _dbClientCloud.GetDatabase(Constants.Financials);
 			IMongoCollection<BsonDocument> collection;  // initialize to the collection to read from
 			foreach (var item in db.ListCollectionsAsync().Result.ToListAsync<BsonDocument>().Result)
 			{
@@ -675,7 +681,7 @@ namespace FinancialDiaryApi.Manager
 			foreach (var item in filePaths)
 			{
 
-				IMongoCollection<BsonDocument> collection = GetMongoCollectionCloud(item); // initialize to the collection to write to.
+				IMongoCollection<BsonDocument> collection = GetMongoCollection(item); // initialize to the collection to write to.
 				var inputFile = Constants.outputPath + item + ".json";
 				using (var streamReader = new StreamReader(inputFile))
 				{
