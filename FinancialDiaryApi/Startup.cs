@@ -26,14 +26,16 @@ namespace FinancialDiaryApi
 		}
 		public IConfiguration Configuration { get; }
 
+		private void SetEncryptedMongoConnection()
+		{
+			var builder = Configuration.GetConnectionString("FinDB");
+			var password = Configuration["admin"];
+			ConnectionString = builder.Replace("PasswordToReplace", password);
+		}
 		// This method gets called by the runtime. Use this method to add services to the container.
 		public void ConfigureServices(IServiceCollection services)
 		{
-			var builder = Configuration.GetConnectionString("FinDB");
-
-			var password = Configuration["admin"];
-			ConnectionString=builder.Replace("PasswordToReplace", password);
-
+			SetEncryptedMongoConnection();
 			services.AddCors(c =>
 			{
 				c.AddPolicy(name: "AllowSpecificOrigins", options => options.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
