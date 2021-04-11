@@ -15,6 +15,7 @@ namespace FinancialDiaryWeb.Model
 		public string denomination { get; set; }
 		public string profile { get; set; }
 		public string id { get;  set; }
+		public string user { get; set; }
 	}
 
 	public class InvestmentReturns
@@ -26,18 +27,21 @@ namespace FinancialDiaryWeb.Model
 		public double returns { get; set; }
 		public string id { get; set; }
 		public string type { get; set; }
+		public string user { get; set; }
 	}
 
 	public class InvestmentDetailsByDate
 	{
 		public string date { get; set; }
 		public string denomination { get; set; }
+		public string user { get; set; }
 	}
 
 	public class InvestmentReturnDataForChart
 	{
 		public List<Returns> InvestmentReturnChart { get; set; }
 		public string[] ChartLabels { get; set; }
+		public string user { get; set; }
 	}
 	public class Returns
 	{
@@ -45,6 +49,7 @@ namespace FinancialDiaryWeb.Model
 		public string Label { get; set; }
 
 		public int pointRadius { get; set; }
+		public string user { get; set; }
 	}
 
 	public class DashboardData
@@ -55,6 +60,7 @@ namespace FinancialDiaryWeb.Model
 		public string date { get; set; }
 		public double ppf { get; set; }
 		public string cardclass { get; set; }
+		public string user { get; set; }
 	}
 
 	public class DashboardAssetDetails
@@ -63,6 +69,7 @@ namespace FinancialDiaryWeb.Model
 		public string investmenttype { get; set; }
 		public double currentvalue { get; set; }
 		public bool increased { get; set; }
+		public string user { get; set; }
 	}
 	public class DebtDetails
 	{
@@ -70,6 +77,7 @@ namespace FinancialDiaryWeb.Model
 		public DateTime createddate { get; set; }
 		public int currentbalance { get; set; }
 		public string id { get; set; }
+		public string user { get; set; }
 	}
 
 	public class DebtAndInvestmentDetails
@@ -77,6 +85,7 @@ namespace FinancialDiaryWeb.Model
 		public string totaldebt { get; set; }
 		public string totalinvestments { get; set; }
 		public string id { get; set; }
+		public string user { get; set; }
 	}
 	public class ProvidentFundDetails
 	{
@@ -85,5 +94,6 @@ namespace FinancialDiaryWeb.Model
 		public double epfoPrimaryBalance { get; set; }
 		public double ppfBalance { get; set; }
 		public string id { get; set; }
+		public string user { get; set; }
 	}
 }
