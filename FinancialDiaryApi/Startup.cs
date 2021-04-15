@@ -9,7 +9,11 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
+using FinancialDiaryApi.Middleware;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 
 namespace FinancialDiaryApi
 {
@@ -36,9 +40,15 @@ namespace FinancialDiaryApi
 		public void ConfigureServices(IServiceCollection services)
 		{
 			SetEncryptedMongoConnection();
-			services.AddCors(c =>
+
+			services.AddCors(options =>
 			{
-				c.AddPolicy(name: "AllowSpecificOrigins", options => options.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
+				options.AddPolicy("EnableCORS", builder =>
+				{
+					builder.AllowAnyOrigin()
+						.AllowAnyHeader()
+						.AllowAnyMethod();
+				});
 			});
 			services.AddSwaggerGen();
 			services.AddControllers();
@@ -56,12 +66,13 @@ namespace FinancialDiaryApi
 			{
 				c.SwaggerEndpoint("/swagger/v1/swagger.json", "Finior API V1");
 			});
-			app.UseCors(options => options.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
+			app.UseCors("EnableCORS");
 			app.UseHttpsRedirection();
 
 			app.UseRouting();
 
-			app.UseAuthorization();
+			app.UseAuthentication();
+			app.UseAuthorizationMiddleware();
 
 			app.UseEndpoints(endpoints =>
 			{

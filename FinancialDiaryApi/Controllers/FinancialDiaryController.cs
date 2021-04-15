@@ -7,6 +7,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using FinancialDiaryApi.Manager;
 using FinancialDiaryWeb.Model;
+using Google.Apis.Auth;
+using Microsoft.AspNetCore.Authorization;
 
 namespace FinancialDiaryWeb.Controllers
 {
