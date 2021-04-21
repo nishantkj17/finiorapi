@@ -102,7 +102,7 @@ namespace FinancialDiaryApi.Manager
 			{
 				filter &= builder.Eq(Constants.date, date);
 			}
-			
+
 			var docs = investmentRecord.Find(filter).ToList();
 
 			return docs.Select(item => new InvestmentDetails
@@ -112,7 +112,7 @@ namespace FinancialDiaryApi.Manager
 				denomination = (string)item[Constants.amount],
 				profile = (string)item[Constants.profile],
 				id = Convert.ToString((ObjectId)item[Constants._id]),
-				user= Convert.ToString((string)item[Constants.user])
+				user = Convert.ToString((string)item[Constants.user])
 			})
 				.ToList();
 		}
@@ -120,7 +120,7 @@ namespace FinancialDiaryApi.Manager
 		internal async Task<int> UpdateSIPDetails(InvestmentDetails model)
 		{
 			var filter = Builders<BsonDocument>.Filter.Eq(Constants._id, MongoDB.Bson.ObjectId.Parse(model.id)) &
-			             Builders<BsonDocument>.Filter.Eq(Constants.user, model.user);
+						 Builders<BsonDocument>.Filter.Eq(Constants.user, model.user);
 
 			var update = Builders<BsonDocument>.Update.Set(Constants.fundName, model.fundName)
 					.Set(Constants.date, model.date)
@@ -338,7 +338,7 @@ namespace FinancialDiaryApi.Manager
 		internal async Task<int> DeleteSIPDetails(string id, string user)
 		{
 			var deleteFilter = Builders<BsonDocument>.Filter.Eq(Constants._id, MongoDB.Bson.ObjectId.Parse(id)) &
-			                   Builders<BsonDocument>.Filter.Eq(Constants.user, user);
+							   Builders<BsonDocument>.Filter.Eq(Constants.user, user);
 			var investmentRecord = GetMongoCollection(Constants.Diary);
 			investmentRecord.DeleteOne(deleteFilter);
 			return 0;
@@ -383,21 +383,21 @@ namespace FinancialDiaryApi.Manager
 			List<BsonDocument> data;
 			var filter = Builders<BsonDocument>.Filter.Eq(Constants.user, user);
 
-				if (order.Equals(Constants.ByLatestDate))
-				{
-					data = investmentRecord.Find(filter)
-						.Sort(Builders<BsonDocument>.Sort.Descending(Constants.createddate)
-							.Descending(Constants.createddate))
-						.ToList();
-				}
-				else
-				{
-					data = investmentRecord.Find(filter)
-						.Sort(Builders<BsonDocument>.Sort.Ascending(Constants.createddate)
-							.Ascending(Constants.createddate))
-						.ToList();
-				}
-	
+			if (order.Equals(Constants.ByLatestDate))
+			{
+				data = investmentRecord.Find(filter)
+					.Sort(Builders<BsonDocument>.Sort.Descending(Constants.createddate)
+						.Descending(Constants.createddate))
+					.ToList();
+			}
+			else
+			{
+				data = investmentRecord.Find(filter)
+					.Sort(Builders<BsonDocument>.Sort.Ascending(Constants.createddate)
+						.Ascending(Constants.createddate))
+					.ToList();
+			}
+
 			return data;
 		}
 		private List<BsonDocument> GetTopInvestmentReturnData(string collection, string order, int limit, string user)
@@ -579,7 +579,7 @@ namespace FinancialDiaryApi.Manager
 			var filter = Builders<BsonDocument>.Filter.Gte(Constants.createddate, start) &
 						 Builders<BsonDocument>.Filter.Lte(Constants.createddate, end) &
 						 Builders<BsonDocument>.Filter.Gt(Constants.currentBalance, 0) &
-						 Builders<BsonDocument>.Filter.Eq(Constants.user, user) ;
+						 Builders<BsonDocument>.Filter.Eq(Constants.user, user);
 
 			var docs = debtRecords.Find(filter).ToList();
 			return docs.Select(item => new DebtDetails
@@ -645,6 +645,68 @@ namespace FinancialDiaryApi.Manager
 			return debtAccounts.Select(item => (string)item[Constants.name]).ToList();
 		}
 
+		internal async Task<Configuration> GetConfigurationSettings(string user)
+		{
+			var filter = Builders<BsonDocument>.Filter.Eq(Constants.user, user);
+			var debtAccounts = GetMongoCollection(Constants.DebtAccounts).Find(filter).ToList();
+			var profiles = GetMongoCollection(Constants.profile).Find(filter).ToList();
+			return new Configuration
+			{
+				profile = profiles.Select(item => (string)item[Constants.name]).ToList(),
+				debtaccount = debtAccounts.Select(item => (string)item[Constants.name]).ToList()
+			};
+		}
+
+		internal async Task<int> SaveProfileSettings(string user, string profiles)
+		{
+			var profileData = profiles.Split(',');
+			var profileRecord = GetMongoCollection(Constants.profile);
+			foreach (var item in profileData)
+			{
+				var doc = new BsonDocument
+			{
+				{Constants.name, item},
+				{Constants.user, user }
+			};
+
+				await profileRecord.InsertOneAsync(doc);
+			}
+			return 1;
+		}
+
+		internal async Task<int> SaveDebtAccountSettings(string user, string debtAccount)
+		{
+			var debtAccountData = debtAccount.Split(',');
+			var debtAccountDataRecord = GetMongoCollection(Constants.DebtAccounts);
+			foreach (var item in debtAccountData)
+			{
+				var doc = new BsonDocument
+			{
+				{Constants.name, item},
+				{Constants.user, user }
+			};
+
+				await debtAccountDataRecord.InsertOneAsync(doc);
+			}
+			return 1;
+		}
+
+		internal async Task<int> SaveInvestmentAccountSettings(string user, string investmentAccount)
+		{
+			var investmentAccountData = investmentAccount.Split(',');
+			var investmentAccountDataRecord = GetMongoCollection(Constants.InvestmentAccounts);
+			foreach (var item in investmentAccountData)
+			{
+				var doc = new BsonDocument
+			{
+				{Constants.name, item},
+				{Constants.user, user }
+			};
+
+				await investmentAccountDataRecord.InsertOneAsync(doc);
+			}
+			return 1;
+		}
 		private async void CollectionBackup()
 		{
 			var outputFileName = Constants.outputPath; // initialize to the output file

@@ -96,4 +96,17 @@ namespace FinancialDiaryWeb.Model
 		public string id { get; set; }
 		public string user { get; set; }
 	}
+
+	public class Configuration
+	{
+		public List<string> profile { get; set; }
+		public List<string> debtaccount { get; set; }
+	}
+	public class ConfigurationModel
+	{
+		public string profiles { get; set; }
+		public string debtaccount { get; set; }
+		public string investmentaccount { get; set; }
+		public string user { get; set; }
+	}
 }

@@ -213,6 +213,37 @@ namespace FinancialDiaryWeb.Controllers
 			var obj = new FinancialMongoDbManager();
 			return Ok(await obj.GetDebtAndInvestmentForChart(user));
 		}
+
+		[HttpGet]
+		[Route("getconfigurationsettings")]
+		public async Task<ActionResult> GetConfigurationSettings(string user)
+		{
+			var obj = new FinancialMongoDbManager();
+			return Ok(await obj.GetConfigurationSettings(user));
+		}
+
+		[HttpPost]
+		[Route("saveprofilessettings")]
+		public async Task<ActionResult> SaveProfileSettings([FromForm] ConfigurationModel model)
+		{
+			var obj = new FinancialMongoDbManager();
+			return Ok(await obj.SaveProfileSettings(model.user, model.profiles));
+		}
+
+		[HttpPost]
+		[Route("savedebtaccountsettings")]
+		public async Task<ActionResult> SaveDebtAccountSettings([FromForm] ConfigurationModel model)
+		{
+			var obj = new FinancialMongoDbManager();
+			return Ok(await obj.SaveDebtAccountSettings(model.user, model.debtaccount));
+		}
+		[HttpPost]
+		[Route("saveinvestmentaccountsettings")]
+		public async Task<ActionResult> SaveInvestmentAccountSettings([FromForm] ConfigurationModel model)
+		{
+			var obj = new FinancialMongoDbManager();
+			return Ok(await obj.SaveInvestmentAccountSettings(model.user, model.investmentaccount));
+		}
 	}
 
 }
