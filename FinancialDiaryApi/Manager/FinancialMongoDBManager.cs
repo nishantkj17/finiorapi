@@ -335,6 +335,24 @@ namespace FinancialDiaryApi.Manager
 			return new InvestmentReturnDataForChart { InvestmentReturnChart = chartData, ChartLabels = lineChartLabelsList.ToArray() };
 		}
 
+		internal async Task<DashBoardChangeData> GetDashboardChangeData(string user)
+		{
+			var docs = GetTopInvestmentReturnData(Constants.DebtAndInvestment, Constants.ByLatestDate, 2, user);
+			var changeInAsset = (double)docs.First()[Constants.totalinvestments] - (double)docs.Last()[Constants.totalinvestments];
+			var changeInDebt = (double)docs.First()[Constants.totaldebt] - (double)docs.Last()[Constants.totaldebt];
+
+			var obj = new DashBoardChangeData
+			{
+				assetincreased = changeInAsset > 0,
+				assetchange = changeInAsset>0?changeInAsset:changeInAsset*-1,
+				assetchangepercentage = Math.Round ((changeInAsset / (double)docs.Last()[Constants.totalinvestments]) * 100, 2),
+				debtincreased = changeInDebt > 0,
+				debtchange = changeInDebt>0?changeInDebt:changeInDebt*-1,
+				debtchangepercentage = Math.Round(((changeInDebt > 0 ? changeInDebt : changeInDebt * -1) / (double)docs.Last()[Constants.totaldebt]) * 100,2)
+			};
+
+			return obj;
+		}
 		internal async Task<int> DeleteSIPDetails(string id, string user)
 		{
 			var deleteFilter = Builders<BsonDocument>.Filter.Eq(Constants._id, MongoDB.Bson.ObjectId.Parse(id)) &
@@ -513,6 +531,9 @@ namespace FinancialDiaryApi.Manager
 
 			var pfDocuments = GetTopInvestmentReturnData(Constants.EPFO, Constants.ByLatestDate, 6, user);
 
+			//List<BsonDocument> pfDataForIteration = null;
+
+			//pfDataForIteration = pfDocuments.GetRange(0, 3);
 			foreach (var item in pfDocuments.GetRange(0, 3))
 			{
 				if (((string)item[Constants.type]).Equals(Constants.EPFO))
@@ -706,6 +727,15 @@ namespace FinancialDiaryApi.Manager
 				await investmentAccountDataRecord.InsertOneAsync(doc);
 			}
 			return 1;
+		}
+
+		internal async Task<int> DeleteConfigSettings(string id, string user)
+		{
+			var deleteFilter = Builders<BsonDocument>.Filter.Eq(Constants._id, MongoDB.Bson.ObjectId.Parse(id)) &
+							   Builders<BsonDocument>.Filter.Eq(Constants.user, user);
+			var investmentRecord = GetMongoCollection(Constants.Diary);
+			investmentRecord.DeleteOne(deleteFilter);
+			return 0;
 		}
 		private async void CollectionBackup()
 		{

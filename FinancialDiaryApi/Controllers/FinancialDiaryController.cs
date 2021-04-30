@@ -244,6 +244,12 @@ namespace FinancialDiaryWeb.Controllers
 			var obj = new FinancialMongoDbManager();
 			return Ok(await obj.SaveInvestmentAccountSettings(model.user, model.investmentaccount));
 		}
+		[HttpGet]
+		[Route("getdashboardchangedata")]
+		public async Task<ActionResult> GetDashboardChangeData(string user)
+		{
+			var obj = new FinancialMongoDbManager();
+			return Ok(await obj.GetDashboardChangeData(user));
+		}
 	}
-
 }

@@ -109,4 +109,13 @@ namespace FinancialDiaryWeb.Model
 		public string investmentaccount { get; set; }
 		public string user { get; set; }
 	}
+	public class DashBoardChangeData
+	{
+		public double assetchange { get; set; }
+		public bool assetincreased { get; set; }
+		public double assetchangepercentage { get; set; }
+		public double debtchange { get; set; }
+		public bool debtincreased { get; set; }
+		public double debtchangepercentage { get; set; }
+	}
 }
