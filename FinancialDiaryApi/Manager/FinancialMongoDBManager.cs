@@ -190,13 +190,14 @@ namespace FinancialDiaryApi.Manager
 			var epfoPrimaryBalance = new double[docs.Count];
 			var epfoSecondaryBalance = new double[docs.Count];
 			var ppfBalance = new double[docs.Count];
-
+			var profiles = GetProfileName(user).Result;
+			profiles.Sort();
 			foreach (var item in docs)
 			{
 				lineChartLabelsList.AddRange(new string[] { "" });
 				if (Convert.ToString(item[Constants.type]).Equals(Constants.EPFO))
 				{
-					if (Convert.ToString(item[Constants.profile]).Contains("Nishant"))
+					if (Convert.ToString(item[Constants.profile]).Equals(profiles[0]))
 					{
 						epfoSecondaryBalance[counter] = (double)item[Constants.epfoPrimaryBalance];
 					}
@@ -219,8 +220,8 @@ namespace FinancialDiaryApi.Manager
 
 			var chartData = new List<Returns>
 			{
-				new Returns { Label = Constants.NCurrentvalue, Data = epfoSecondaryBalance.Where(x =>  x != 0).ToArray(),  pointRadius=0 },
-				new Returns { Label = Constants.RCurrentValue, Data = epfoPrimaryBalance, pointRadius=0 },
+				new Returns { Label = String.Format(Constants.CurrentValue, profiles[0][0]), Data = epfoSecondaryBalance.Where(x =>  x != 0).ToArray(),  pointRadius=0 },
+				new Returns { Label = String.Format(Constants.CurrentValue, profiles[1][0]), Data = epfoPrimaryBalance, pointRadius=0 },
 				new Returns { Label = Constants.ppf, Data = ppfBalance.Where(x =>  x != 0).ToArray(), pointRadius=0 }
 			};
 
@@ -276,20 +277,21 @@ namespace FinancialDiaryApi.Manager
 			{
 				lineChartLabelsList.AddRange(new string[] { "" });
 			}
+			var profiles = GetProfileName(user).Result;
+			profiles.Sort();
 			foreach (var item in investmentReturnData.Result)
 			{
-				if (item.profile == Constants.RanjanaJha)
-				{
-
-					primaryInvestedAmountData[primaryCounter] = item.investedamount;
-					primaryCurrentValueData[primaryCounter] = item.currentvalue;
-					primaryCounter++;
-				}
-				else
+				if (item.profile == profiles[0])
 				{
 					secondaryInvestedAmountData[secondaryCounter] = item.investedamount;
 					secondaryCurrentValueData[secondaryCounter] = item.currentvalue;
 					secondaryCounter++;
+				}
+				else
+				{
+					primaryInvestedAmountData[primaryCounter] = item.investedamount;
+					primaryCurrentValueData[primaryCounter] = item.currentvalue;
+					primaryCounter++;
 				}
 			}
 
@@ -299,12 +301,13 @@ namespace FinancialDiaryApi.Manager
 			{
 				lineChartLabelsList.RemoveRange((lineChartLabelsList.Count - primaryInvestedAmountData.Length) / 2, (lineChartLabelsList.Count - primaryInvestedAmountData.Length));
 			}
+			String.Format(Constants.InvestedAmount, profiles[0][0]);
 			var chartData = new List<Returns>
 			{
-				new Returns { Label = Constants.RInvestedAmount, Data = primaryInvestedAmountData, pointRadius=0 },
-				new Returns { Label = Constants.RCurrentValue, Data = primaryCurrentValueData.Where(x => x != 0).ToArray(), pointRadius=0 },
-				new Returns { Label = Constants.NInvestedAmount, Data = secondaryInvestedAmountData.Where(x => x != 0).ToArray(), pointRadius=0 },
-				new Returns { Label = Constants.NCurrentvalue, Data = secondaryCurrentValueData.Where(x => x != 0).ToArray(), pointRadius=0 }
+				new Returns { Label = String.Format(Constants.InvestedAmount, profiles[1][0]), Data = primaryInvestedAmountData, pointRadius=0 },
+				new Returns { Label = String.Format(Constants.CurrentValue, profiles[1][0]), Data = primaryCurrentValueData.Where(x => x != 0).ToArray(), pointRadius=0 },
+				new Returns { Label = String.Format(Constants.InvestedAmount, profiles[0][0]), Data = secondaryInvestedAmountData.Where(x => x != 0).ToArray(), pointRadius=0 },
+				new Returns { Label = String.Format(Constants.CurrentValue, profiles[0][0]), Data = secondaryCurrentValueData.Where(x => x != 0).ToArray(), pointRadius=0 }
 			};
 
 			return new InvestmentReturnDataForChart { InvestmentReturnChart = chartData, ChartLabels = lineChartLabelsList.ToArray() };
@@ -338,6 +341,10 @@ namespace FinancialDiaryApi.Manager
 		internal async Task<DashBoardChangeData> GetDashboardChangeData(string user)
 		{
 			var docs = GetTopInvestmentReturnData(Constants.DebtAndInvestment, Constants.ByLatestDate, 2, user);
+			if(docs.Count<2)
+			{
+				return new DashBoardChangeData();
+			}
 			var changeInAsset = (double)docs.First()[Constants.totalinvestments] - (double)docs.Last()[Constants.totalinvestments];
 			var changeInDebt = (double)docs.First()[Constants.totaldebt] - (double)docs.Last()[Constants.totaldebt];
 
@@ -364,6 +371,31 @@ namespace FinancialDiaryApi.Manager
 
 		internal async Task<int> SaveReturns(string profile, int investedamount, int currentvalue, string user)
 		{
+			var userFilter = Builders<BsonDocument>.Filter.Eq(Constants.user, user) &
+					 Builders<BsonDocument>.Filter.Eq(Constants.profile, profile);
+			var mutualFundRecord = GetMongoCollection(Constants.Sum);
+			var recordExist = mutualFundRecord.Find(userFilter).ToList();
+			if (recordExist.Count > 0)
+			{
+				var latestDate = (DateTime)mutualFundRecord.Find(userFilter)
+					.Sort(Builders<BsonDocument>.Sort.Descending(Constants.createddate)
+						.Descending(Constants.createddate))
+					.ToList().FirstOrDefault()?[Constants.createddate];
+
+				var filter = Builders<BsonDocument>.Filter.Eq(Constants.createddate, latestDate) &
+					 Builders<BsonDocument>.Filter.Eq(Constants.user, user) &
+					 Builders<BsonDocument>.Filter.Eq(Constants.profile, profile);
+
+				var docs = filter == null
+					? mutualFundRecord.Find(new BsonDocument()).ToList()
+					: mutualFundRecord.Find(filter).ToList();
+				if (docs.Count > 0)
+				{
+					var lastEntry = (DateTime)docs[0][Constants.createddate];
+					if (lastEntry.Date == DateTime.Now.Date)
+						return 0;
+				}
+			}
 			var investmentRecord = GetMongoCollection(Constants.Sum);
 			var returns = ((double)(currentvalue - investedamount) / (double)investedamount) * 100;
 			var doc = new BsonDocument
@@ -377,7 +409,7 @@ namespace FinancialDiaryApi.Manager
 			};
 
 			await investmentRecord.InsertOneAsync(doc);
-			return 0;
+			return 1;
 		}
 
 		internal async Task<IEnumerable<InvestmentReturns>> GetInvestmentReturnDetails(string user)
@@ -532,32 +564,47 @@ namespace FinancialDiaryApi.Manager
 			var pfDocuments = GetTopInvestmentReturnData(Constants.EPFO, Constants.ByLatestDate, 6, user);
 
 			//List<BsonDocument> pfDataForIteration = null;
-
-			//pfDataForIteration = pfDocuments.GetRange(0, 3);
-			foreach (var item in pfDocuments.GetRange(0, 3))
+			if (pfDocuments.Count > 2)
 			{
-				if (((string)item[Constants.type]).Equals(Constants.EPFO))
+				//pfDataForIteration = pfDocuments.GetRange(0, 3);
+				foreach (var item in pfDocuments.GetRange(0, 3))
 				{
-					epfoData += (double)item[Constants.epfoPrimaryBalance];
+					if (((string)item[Constants.type]).Equals(Constants.EPFO))
+					{
+						epfoData += (double)item[Constants.epfoPrimaryBalance];
+					}
+					else
+					{
+						ppfData += (double)item[Constants.ppfBalance];
+					}
 				}
-				else
+
+				foreach (var item in pfDocuments.GetRange(3, 3))
 				{
-					ppfData += (double)item[Constants.ppfBalance];
+					if (((string)item[Constants.type]).Equals(Constants.EPFO))
+					{
+						epfoDataPrevious += (double)item[Constants.epfoPrimaryBalance];
+					}
+					else
+					{
+						ppfDataPrevious += (double)item[Constants.ppfBalance];
+					}
 				}
 			}
-
-			foreach (var item in pfDocuments.GetRange(3, 3))
+			else
 			{
-				if (((string)item[Constants.type]).Equals(Constants.EPFO))
+				foreach (var item in pfDocuments)
 				{
-					epfoDataPrevious += (double)item[Constants.epfoPrimaryBalance];
-				}
-				else
-				{
-					ppfDataPrevious += (double)item[Constants.ppfBalance];
+					if (((string)item[Constants.type]).Equals(Constants.EPFO))
+					{
+						epfoData += (double)item[Constants.epfoPrimaryBalance];
+					}
+					else
+					{
+						ppfData += (double)item[Constants.ppfBalance];
+					}
 				}
 			}
-
 			var outputData = new List<DashboardAssetDetails>
 			{
 				new DashboardAssetDetails
@@ -586,10 +633,11 @@ namespace FinancialDiaryApi.Manager
 		internal async Task<IEnumerable<DebtDetails>> GetDebtsDashBoardData(string user)
 		{
 			var debtRecords = GetMongoCollection(Constants.Debt);
-			var recordExist = debtRecords.Find(new BsonDocument()).ToList();
+			var userFilter = Builders<BsonDocument>.Filter.Eq(Constants.user, user);
+			var recordExist = debtRecords.Find(userFilter).ToList();
 			if (recordExist.Count <= 0) return null;
 
-			var latestDate = (DateTime)debtRecords.Find(new BsonDocument())
+			var latestDate = (DateTime)debtRecords.Find(userFilter)
 				.Sort(Builders<BsonDocument>.Sort.Descending(Constants.createddate)
 					.Descending(Constants.createddate))
 				.ToList().FirstOrDefault()?[Constants.createddate];
@@ -614,27 +662,29 @@ namespace FinancialDiaryApi.Manager
 
 		internal async Task<int> RefreshDebtAndInvestmentDataForChart(string user)
 		{
+			//var userFilter = Builders<BsonDocument>.Filter.Eq(Constants.user, user);
 			var debtInvestmentRecord = GetMongoCollection(Constants.DebtAndInvestment);
-			var recordExist = debtInvestmentRecord.Find(new BsonDocument()).ToList();
-			if (recordExist.Count > 0)
-			{
-				var latestDate = (DateTime)debtInvestmentRecord.Find(new BsonDocument())
-					.Sort(Builders<BsonDocument>.Sort.Descending(Constants.createddate)
-						.Descending(Constants.createddate))
-					.ToList().FirstOrDefault()?[Constants.createddate];
+			//var recordExist = debtInvestmentRecord.Find(userFilter).ToList();
+			//if (recordExist.Count > 0)
+			//{
+			//	var latestDate = (DateTime)debtInvestmentRecord.Find(userFilter)
+			//		.Sort(Builders<BsonDocument>.Sort.Descending(Constants.createddate)
+			//			.Descending(Constants.createddate))
+			//		.ToList().FirstOrDefault()?[Constants.createddate];
 
-				var filter = Builders<BsonDocument>.Filter.Eq(Constants.createddate, latestDate);
+			//	var filter = Builders<BsonDocument>.Filter.Eq(Constants.createddate, latestDate)&
+			//		 Builders<BsonDocument>.Filter.Eq(Constants.user, user); 
 
-				var docs = filter == null
-					? debtInvestmentRecord.Find(new BsonDocument()).ToList()
-					: debtInvestmentRecord.Find(filter).ToList();
-				if (docs.Count > 0)
-				{
-					var lastEntry = (DateTime)docs[0][Constants.createddate];
-					if (lastEntry.Month == DateTime.Now.Month)
-						return 0;
-				}
-			}
+			//	var docs = filter == null
+			//		? debtInvestmentRecord.Find(new BsonDocument()).ToList()
+			//		: debtInvestmentRecord.Find(filter).ToList();
+			//	if (docs.Count > 0)
+			//	{
+			//		var lastEntry = (DateTime)docs[0][Constants.createddate];
+			//		if (lastEntry.Month == DateTime.Now.Month)
+			//			return 0;
+			//	}
+			//}
 
 			var assetData = GetAssetsDashBoardData(user).Result;
 			var debtData = GetDebtsDashBoardData(user).Result;
@@ -659,6 +709,13 @@ namespace FinancialDiaryApi.Manager
 			return debtAccounts.Select(item => (string)item[Constants.name]).ToList();
 		}
 
+		internal async Task<List<string>> GetProfileName(string user)
+		{
+			var filter = Builders<BsonDocument>.Filter.Eq(Constants.user, user);
+			var debtAccounts = GetMongoCollection(Constants.profile).Find(filter).ToList();
+			return debtAccounts.Select(item => (string)item[Constants.name]).ToList();
+		}
+
 		internal async Task<List<string>> GetInvestmentAccountName(string user)
 		{
 			var filter = Builders<BsonDocument>.Filter.Eq(Constants.user, user);
@@ -680,8 +737,15 @@ namespace FinancialDiaryApi.Manager
 
 		internal async Task<int> SaveProfileSettings(string user, string profiles)
 		{
-			var profileData = profiles.Split(',');
+			var userFilter = Builders<BsonDocument>.Filter.Eq(Constants.user, user);
 			var profileRecord = GetMongoCollection(Constants.profile);
+			var recordExist = profileRecord.Find(userFilter).ToList();
+			if(recordExist.Count>1)
+			{
+				return 0;
+			}
+			var profileData = profiles.Split(',');
+
 			foreach (var item in profileData)
 			{
 				var doc = new BsonDocument

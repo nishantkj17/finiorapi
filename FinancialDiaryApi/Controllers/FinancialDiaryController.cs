@@ -50,8 +50,7 @@ namespace FinancialDiaryWeb.Controllers
 		public async Task<ActionResult> SaveReturns([FromForm] InvestmentReturns model)
 		{
 			var obj = new FinancialMongoDbManager();
-			await obj.SaveReturns(model.profile, model.investedamount, model.currentvalue, model.user);
-			return Ok();
+			return Ok(await obj.SaveReturns(model.profile, model.investedamount, model.currentvalue, model.user));
 		}
 
 
@@ -180,6 +179,14 @@ namespace FinancialDiaryWeb.Controllers
 		{
 			var obj = new FinancialMongoDbManager();
 			return Ok(await obj.GetDebtAccountName(user));
+		}
+
+		[HttpGet]
+		[Route("getprofilename")]
+		public async Task<ActionResult> GetProfileName(string user)
+		{
+			var obj = new FinancialMongoDbManager();
+			return Ok(await obj.GetProfileName(user));
 		}
 
 		[HttpGet]

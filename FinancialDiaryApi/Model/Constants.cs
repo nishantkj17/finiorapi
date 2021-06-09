@@ -35,10 +35,9 @@ namespace FinancialDiaryApi.Model
         public const string Interest = "Interest";
         public const string Contribution = "Contribution";
         public const string RanjanaJha = "Ranjana Jha";
-        public const string RInvestedAmount = "R: Invested Amount";
-		public const string RCurrentValue= "R: Current Value";
-        public const string NInvestedAmount = "N: Invested Amount";
-        public const string NCurrentvalue = "N: Current Value";
+        public const string InvestedAmount = "{0}: Invested Amount";
+		public const string CurrentValue= "{0}: Current Value";
+
         public const string Sum = "Sum";
         public const string ByLatestDate= "ByLatestDate";
         public const string ByOldDate = "ByOldDate";
