@@ -212,19 +212,36 @@ namespace FinancialDiaryApi.Manager
 				}
 				counter++;
 			}
+
 			epfoPrimaryBalance = epfoPrimaryBalance.Where(x => x != 0).ToArray();
-			if (lineChartLabelsList.Count > (lineChartLabelsList.Count - epfoPrimaryBalance.Length) / 2)
+
+
+			var chartData = new List<Returns>();
+			if (profiles.Count > 1)
 			{
-				lineChartLabelsList.RemoveRange((lineChartLabelsList.Count - epfoPrimaryBalance.Length) / 2, (lineChartLabelsList.Count - epfoPrimaryBalance.Length));
+				if (lineChartLabelsList.Count > (lineChartLabelsList.Count - epfoPrimaryBalance.Length) / 2)
+				{
+					lineChartLabelsList.RemoveRange((lineChartLabelsList.Count - epfoPrimaryBalance.Length) / 2, (lineChartLabelsList.Count - epfoPrimaryBalance.Length));
+				}
+				chartData = new List<Returns>
+				{
+					new Returns { Label = String.Format(Constants.CurrentValue, profiles[0][0]), Data = epfoSecondaryBalance.Where(x =>  x != 0).ToArray(),  pointRadius=0 },
+					new Returns { Label = String.Format(Constants.CurrentValue, profiles[1][0]), Data = epfoPrimaryBalance, pointRadius=0 },
+					new Returns { Label = Constants.ppf, Data = ppfBalance.Where(x =>  x != 0).ToArray(), pointRadius=0 }
+				};
 			}
-
-			var chartData = new List<Returns>
+			else
 			{
-				new Returns { Label = String.Format(Constants.CurrentValue, profiles[0][0]), Data = epfoSecondaryBalance.Where(x =>  x != 0).ToArray(),  pointRadius=0 },
-				new Returns { Label = String.Format(Constants.CurrentValue, profiles[1][0]), Data = epfoPrimaryBalance, pointRadius=0 },
-				new Returns { Label = Constants.ppf, Data = ppfBalance.Where(x =>  x != 0).ToArray(), pointRadius=0 }
-			};
-
+				if (lineChartLabelsList.Count > (lineChartLabelsList.Count - epfoPrimaryBalance.Length) / 2)
+				{
+					lineChartLabelsList.RemoveRange(0, (lineChartLabelsList.Count/2));
+				}
+				chartData = new List<Returns>
+				{
+					new Returns { Label = String.Format(Constants.CurrentValue, profiles[0][0]), Data = epfoSecondaryBalance.Where(x =>  x != 0).ToArray(),  pointRadius=0 },
+					new Returns { Label = Constants.ppf, Data = ppfBalance.Where(x =>  x != 0).ToArray(), pointRadius=0 }
+				};
+			}
 			return new InvestmentReturnDataForChart { InvestmentReturnChart = chartData, ChartLabels = lineChartLabelsList.ToArray() };
 		}
 
@@ -301,14 +318,25 @@ namespace FinancialDiaryApi.Manager
 			{
 				lineChartLabelsList.RemoveRange((lineChartLabelsList.Count - primaryInvestedAmountData.Length) / 2, (lineChartLabelsList.Count - primaryInvestedAmountData.Length));
 			}
-			String.Format(Constants.InvestedAmount, profiles[0][0]);
-			var chartData = new List<Returns>
+			var chartData = new List<Returns>();
+			if (profiles.Count > 1)
 			{
-				new Returns { Label = String.Format(Constants.InvestedAmount, profiles[1][0]), Data = primaryInvestedAmountData, pointRadius=0 },
-				new Returns { Label = String.Format(Constants.CurrentValue, profiles[1][0]), Data = primaryCurrentValueData.Where(x => x != 0).ToArray(), pointRadius=0 },
-				new Returns { Label = String.Format(Constants.InvestedAmount, profiles[0][0]), Data = secondaryInvestedAmountData.Where(x => x != 0).ToArray(), pointRadius=0 },
-				new Returns { Label = String.Format(Constants.CurrentValue, profiles[0][0]), Data = secondaryCurrentValueData.Where(x => x != 0).ToArray(), pointRadius=0 }
-			};
+				chartData = new List<Returns>
+				{
+					new Returns { Label = String.Format(Constants.InvestedAmount, profiles[1][0]), Data = primaryInvestedAmountData, pointRadius=0 },
+					new Returns { Label = String.Format(Constants.CurrentValue, profiles[1][0]), Data = primaryCurrentValueData.Where(x => x != 0).ToArray(), pointRadius=0 },
+					new Returns { Label = String.Format(Constants.InvestedAmount, profiles[0][0]), Data = secondaryInvestedAmountData.Where(x => x != 0).ToArray(), pointRadius=0 },
+					new Returns { Label = String.Format(Constants.CurrentValue, profiles[0][0]), Data = secondaryCurrentValueData.Where(x => x != 0).ToArray(), pointRadius=0 }
+				};
+			}
+			else
+			{
+				chartData = new List<Returns>
+				{
+					new Returns { Label = String.Format(Constants.InvestedAmount, profiles[0][0]), Data = secondaryInvestedAmountData.Where(x => x != 0).ToArray(), pointRadius=0 },
+					new Returns { Label = String.Format(Constants.CurrentValue, profiles[0][0]), Data = secondaryCurrentValueData.Where(x => x != 0).ToArray(), pointRadius=0 }
+				};
+			}
 
 			return new InvestmentReturnDataForChart { InvestmentReturnChart = chartData, ChartLabels = lineChartLabelsList.ToArray() };
 		}
@@ -341,7 +369,7 @@ namespace FinancialDiaryApi.Manager
 		internal async Task<DashBoardChangeData> GetDashboardChangeData(string user)
 		{
 			var docs = GetTopInvestmentReturnData(Constants.DebtAndInvestment, Constants.ByLatestDate, 2, user);
-			if(docs.Count<2)
+			if (docs.Count < 2)
 			{
 				return new DashBoardChangeData();
 			}
@@ -351,11 +379,11 @@ namespace FinancialDiaryApi.Manager
 			var obj = new DashBoardChangeData
 			{
 				assetincreased = changeInAsset > 0,
-				assetchange = changeInAsset>0?changeInAsset:changeInAsset*-1,
-				assetchangepercentage = Math.Round ((changeInAsset / (double)docs.Last()[Constants.totalinvestments]) * 100, 2),
+				assetchange = changeInAsset > 0 ? changeInAsset : changeInAsset * -1,
+				assetchangepercentage = Math.Round((changeInAsset / (double)docs.Last()[Constants.totalinvestments]) * 100, 2),
 				debtincreased = changeInDebt > 0,
-				debtchange = changeInDebt>0?changeInDebt:changeInDebt*-1,
-				debtchangepercentage = Math.Round(((changeInDebt > 0 ? changeInDebt : changeInDebt * -1) / (double)docs.Last()[Constants.totaldebt]) * 100,2)
+				debtchange = changeInDebt > 0 ? changeInDebt : changeInDebt * -1,
+				debtchangepercentage = Math.Round(((changeInDebt > 0 ? changeInDebt : changeInDebt * -1) / (double)docs.Last()[Constants.totaldebt]) * 100, 2)
 			};
 
 			return obj;
@@ -740,7 +768,7 @@ namespace FinancialDiaryApi.Manager
 			var userFilter = Builders<BsonDocument>.Filter.Eq(Constants.user, user);
 			var profileRecord = GetMongoCollection(Constants.profile);
 			var recordExist = profileRecord.Find(userFilter).ToList();
-			if(recordExist.Count>1)
+			if (recordExist.Count > 1)
 			{
 				return 0;
 			}
