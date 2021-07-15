@@ -43,6 +43,13 @@ namespace FinancialDiaryWeb.Model
 		public string[] ChartLabels { get; set; }
 		public string user { get; set; }
 	}
+
+	public class DebtDataForCharts
+	{
+		public List<Debts> DebtDataForChart { get; set; }
+		public string[] ChartLabels { get; set; }
+		public string user { get; set; }
+	}
 	public class Returns
 	{
 		public double[] Data { get; set; }
@@ -51,7 +58,14 @@ namespace FinancialDiaryWeb.Model
 		public int pointRadius { get; set; }
 		public string user { get; set; }
 	}
+	public class Debts
+	{
+		public int[] Data { get; set; }
+		public string Label { get; set; }
 
+		public int pointRadius { get; set; }
+		public string user { get; set; }
+	}
 	public class DashboardData
 	{
 		public double epfo { get; set; }

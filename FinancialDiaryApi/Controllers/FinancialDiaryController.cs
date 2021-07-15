@@ -222,6 +222,14 @@ namespace FinancialDiaryWeb.Controllers
 		}
 
 		[HttpGet]
+		[Route("getdebtdataforchart")]
+		public async Task<ActionResult> GetDebtDataForChart(string user)
+		{
+			var obj = new FinancialMongoDbManager();
+			return Ok(await obj.GetDebtDataForChart(user));
+		}
+
+		[HttpGet]
 		[Route("getconfigurationsettings")]
 		public async Task<ActionResult> GetConfigurationSettings(string user)
 		{

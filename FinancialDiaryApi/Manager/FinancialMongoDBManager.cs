@@ -217,13 +217,23 @@ namespace FinancialDiaryApi.Manager
 
 
 			var chartData = new List<Returns>();
+			var isLabelCounterMoreThanActualData = lineChartLabelsList.Count > (lineChartLabelsList.Count - epfoPrimaryBalance.Length) / 2;
 			if (profiles.Count > 1)
 			{
-				if (lineChartLabelsList.Count > (lineChartLabelsList.Count - epfoPrimaryBalance.Length) / 2)
+				if (isLabelCounterMoreThanActualData)
 				{
-					lineChartLabelsList.RemoveRange((lineChartLabelsList.Count - epfoPrimaryBalance.Length) / 2, (lineChartLabelsList.Count - epfoPrimaryBalance.Length));
+					var totalRange = (lineChartLabelsList.Count - epfoPrimaryBalance.Length) / 2 + (lineChartLabelsList.Count - epfoPrimaryBalance.Length);
+					if (totalRange <= lineChartLabelsList.Count)
+					{
+						lineChartLabelsList.RemoveRange((lineChartLabelsList.Count - epfoPrimaryBalance.Length) / 2, (lineChartLabelsList.Count - epfoPrimaryBalance.Length));
+					}
+					else
+					{
+						lineChartLabelsList.RemoveRange(0, (lineChartLabelsList.Count - epfoPrimaryBalance.Length) / 2);
+						//lineChartLabelsList.RemoveRange((lineChartLabelsList.Count - epfoPrimaryBalance.Length) / 2, totalRange-lineChartLabelsList.Count);
+					}
 				}
-				chartData = new List<Returns>
+				chartData = new List<Returns>()
 				{
 					new Returns { Label = String.Format(Constants.CurrentValue, profiles[0][0]), Data = epfoSecondaryBalance.Where(x =>  x != 0).ToArray(),  pointRadius=0 },
 					new Returns { Label = String.Format(Constants.CurrentValue, profiles[1][0]), Data = epfoPrimaryBalance, pointRadius=0 },
@@ -232,9 +242,9 @@ namespace FinancialDiaryApi.Manager
 			}
 			else
 			{
-				if (lineChartLabelsList.Count > (lineChartLabelsList.Count - epfoPrimaryBalance.Length) / 2)
+				if (isLabelCounterMoreThanActualData)
 				{
-					lineChartLabelsList.RemoveRange(0, (lineChartLabelsList.Count/2));
+					lineChartLabelsList.RemoveRange(0, (lineChartLabelsList.Count / 2));
 				}
 				chartData = new List<Returns>
 				{
@@ -358,12 +368,80 @@ namespace FinancialDiaryApi.Manager
 			}
 			var chartData = new List<Returns>
 			{
-				new Returns { Label = Constants.Debt, Data = debtData,  pointRadius=2 },
+				new Returns { Label = Constants.Debt, Data = debtData,  pointRadius=1 },
 				new Returns { Label = Constants.SavingsInvestment, Data = investedAmountData, pointRadius=2 }
 			};
 			//CollectionBackup();
 			//ExportjsonToMongo();
 			return new InvestmentReturnDataForChart { InvestmentReturnChart = chartData, ChartLabels = lineChartLabelsList.ToArray() };
+		}
+
+		internal async Task<DebtDataForCharts> GetDebtDataForChart(string user)
+		{
+			var docs = GetInvestmentReturnData(Constants.Debt, Constants.ByOldDate, user);
+
+			var lineChartLabelsList = new List<string>();
+
+			var debtData = new Dictionary<string, List<int>>();
+			var totalEntries = 0;
+			foreach (var item in docs)
+			{
+				if (!debtData.ContainsKey((string)item[Constants.accountname]))
+				{
+					debtData.Add((string)item[Constants.accountname], new List<int> { (int)item[Constants.currentBalance] });
+					
+				}
+				else
+				{
+					var data = debtData[(string)item[Constants.accountname]];
+					data.Add((int)item[Constants.currentBalance]);
+					debtData.Remove((string)item[Constants.accountname]);
+					debtData.Add((string)item[Constants.accountname], data);
+					
+				}
+			}
+
+			foreach (var item in debtData)
+			{
+				if(item.Value.Count> totalEntries)
+				{
+					totalEntries = item.Value.Count;
+				}
+			}
+			var chartData = new List<Debts>();
+			
+
+			var debtChartData= new Dictionary<string, List<int>>();
+			foreach (var item in debtData)
+			{
+				if (item.Value.Count < totalEntries)
+				{
+					
+					debtChartData.Add(item.Key, item.Value);
+					var data = item.Value;
+					var i = 0;
+					while(i <(totalEntries-item.Value.Count))
+					{
+						data.Add(0);
+						debtChartData[item.Key] = data;
+					}
+					chartData.Add(new Debts { Label = item.Key, Data = item.Value.ToArray(), pointRadius = 1 });
+				}
+				else
+				{
+					debtChartData.Add(item.Key, item.Value);
+					chartData.Add(new Debts { Label = item.Key, Data = item.Value.ToArray(), pointRadius = 1 });
+
+				}
+				
+			}
+			for(int i=0; i< totalEntries; i++)
+			{
+				lineChartLabelsList.AddRange(new string[] { "" });
+			}
+			//CollectionBackup();
+			//ExportjsonToMongo();
+			return new DebtDataForCharts { DebtDataForChart = chartData, ChartLabels = lineChartLabelsList.ToArray() };
 		}
 
 		internal async Task<DashBoardChangeData> GetDashboardChangeData(string user)
@@ -606,16 +684,18 @@ namespace FinancialDiaryApi.Manager
 						ppfData += (double)item[Constants.ppfBalance];
 					}
 				}
-
-				foreach (var item in pfDocuments.GetRange(3, 3))
+				if (pfDocuments.Count > 5)
 				{
-					if (((string)item[Constants.type]).Equals(Constants.EPFO))
+					foreach (var item in pfDocuments.GetRange(3, 3))
 					{
-						epfoDataPrevious += (double)item[Constants.epfoPrimaryBalance];
-					}
-					else
-					{
-						ppfDataPrevious += (double)item[Constants.ppfBalance];
+						if (((string)item[Constants.type]).Equals(Constants.EPFO))
+						{
+							epfoDataPrevious += (double)item[Constants.epfoPrimaryBalance];
+						}
+						else
+						{
+							ppfDataPrevious += (double)item[Constants.ppfBalance];
+						}
 					}
 				}
 			}
