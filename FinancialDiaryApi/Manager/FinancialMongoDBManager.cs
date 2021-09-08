@@ -408,24 +408,41 @@ namespace FinancialDiaryApi.Manager
 					totalEntries = item.Value.Count;
 				}
 			}
-			var chartData = new List<Debts>();
-			
 
+			var chartData = new List<Debts>();
 			var debtChartData= new Dictionary<string, List<int>>();
 			foreach (var item in debtData)
 			{
 				if (item.Value.Count < totalEntries)
 				{
-					
 					debtChartData.Add(item.Key, item.Value);
-					var data = item.Value;
-					var i = 0;
-					while(i <(totalEntries-item.Value.Count))
+					if (GetDebtAccountName(user).Result.Contains(item.Key))
 					{
-						data.Add(0);
-						debtChartData[item.Key] = data;
+						var zeroEntryToAdd = totalEntries - item.Value.Count;
+						var tempData = item.Value;
+						var data1 = new List<int>();
+						var i = 0;
+						while (i < zeroEntryToAdd)
+						{
+							data1.Add(0);
+							i++;
+						}
+						data1.AddRange(tempData);
+						debtChartData[item.Key] = data1;
+						chartData.Add(new Debts { Label = item.Key, Data = data1.ToArray(), pointRadius = 1 });
 					}
-					chartData.Add(new Debts { Label = item.Key, Data = item.Value.ToArray(), pointRadius = 1 });
+					else 
+					{
+						
+						var data = item.Value;
+						var i = 0;
+						while (i < (totalEntries - item.Value.Count))
+						{
+							data.Add(0);
+							debtChartData[item.Key] = data;
+						}
+						chartData.Add(new Debts { Label = item.Key, Data = item.Value.ToArray(), pointRadius = 1 });
+					}
 				}
 				else
 				{
